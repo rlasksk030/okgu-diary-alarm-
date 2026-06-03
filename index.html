@@ -41,6 +41,7 @@
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;height:-webkit-fill-available;overflow:hidden;}
 :root{
   --bg:#F5F5F5;--bg2:#FFFFFF;--border:#E4E4E4;--border2:#CFCFCF;
   --text:#0A0A0A;--text2:#444;--text3:#8A8A8A;
@@ -54,7 +55,7 @@
   --fs-mini:10px;   /* 시간/뱃지 */
   --fs-tiny:9px;    /* 아주 작은 텍스트 */
 }
-body{font-family:var(--font);font-size:var(--fs-base);background:var(--bg);display:flex;justify-content:center;align-items:flex-start;height:100vh;overflow:hidden;padding:0;}
+body{font-family:var(--font);font-size:var(--fs-base);background:var(--bg);display:flex;justify-content:center;align-items:flex-start;height:100vh;height:100dvh;min-height:-webkit-fill-available;overflow:hidden;padding:0;padding-top:env(safe-area-inset-top);}
 /* ── 전체 텍스트 일관성 ── */
 .board-text,.feed-text,.diary-item-text,.sentry-text,textarea{font-size:var(--fs-base)!important;color:var(--text2);line-height:1.65;}
 .board-name,.feed-name,.board-date,.comment-author{font-size:var(--fs-base);}
@@ -95,8 +96,8 @@ body{font-family:var(--font);font-size:var(--fs-base);background:var(--bg);displ
 .login-hint{font-size:11px;color:var(--text3);margin-top:16px;line-height:1.6;}
 
 /* ── 앱 래퍼 ── */
-.wrap{max-width:420px;width:100%;height:100%;overflow:hidden;}
-.app{background:var(--bg);border-radius:0;border:none;overflow:hidden;display:flex;flex-direction:column;height:100%;}
+.wrap{max-width:420px;width:100%;height:100%;height:100dvh;overflow:hidden;}
+.app{background:var(--bg);border-radius:0;border:none;overflow:hidden;display:flex;flex-direction:column;height:100%;min-height:0;}
 .sbar{padding:9px 18px 2px;display:flex;justify-content:space-between;font-size:11px;color:var(--text3);background:#fff;flex-shrink:0;}
 .nhead{padding:7px 16px 9px;display:flex;align-items:center;justify-content:space-between;background:#fff;border-bottom:.5px solid var(--border);flex-shrink:0;}
 .ntitle{font-size:16px;font-weight:500;color:var(--text);}
@@ -104,13 +105,13 @@ body{font-family:var(--font);font-size:var(--fs-base);background:var(--bg);displ
 .av{width:32px;height:32px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--green-dark);cursor:pointer;}
 
 /* ── 화면 ── */
-.scr{display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px 20px;min-height:0;}
+.scr{display:none;flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px calc(96px + env(safe-area-inset-bottom));min-height:0;overscroll-behavior:contain;}
 .scr.active{display:block;}
 .slabel{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin:13px 0 6px;}
 .card{background:#fff;border-radius:var(--radius-lg);border:.5px solid var(--border);padding:11px 13px;margin-bottom:9px;}
 
 /* ── 하단 내비 ── */
-.bnav{background:#fff;border-top:.5px solid var(--border);display:flex;padding:7px 0 18px;flex-shrink:0;}
+.bnav{background:#fff;border-top:.5px solid var(--border);display:flex;padding:7px 0 calc(12px + env(safe-area-inset-bottom));flex:0 0 auto;position:sticky;bottom:0;z-index:60;box-shadow:0 -2px 10px rgba(0,0,0,.04);}
 .nbadge{position:absolute;top:2px;right:calc(50% - 18px);background:#E53935;color:#fff;font-size:9px;font-weight:600;min-width:14px;height:14px;line-height:14px;border-radius:99px;text-align:center;padding:0 4px;box-sizing:border-box;}
 .ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:2px 0;}
 .nd{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;background:#F2F2F2;color:#111;}
@@ -491,6 +492,9 @@ function moodSvg(emoji){ return MOOD_SVG_MAP[emoji] || ''; }
         </div>
         <div class="av-menu-item" onclick="openPinSheet()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="vertical-align:-2px"><rect x="5" y="10" width="14" height="10" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M8 10 V8 A4 4 0 0 1 16 8 V10" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="14.5" r="1.4" fill="currentColor"/></svg> PIN 번호 변경</div>
         <div class="av-menu-item" id="notif-menu-item" onclick="toggleNotification()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="vertical-align:-2px"><path d="M5 11 A7 7 0 0 1 19 11 V17 L21 19 H3 L5 17 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19 Q12 21 14 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> 일기 알림 <span id="notif-status" style="font-size:10px;margin-left:4px;color:var(--text3);">꺼짐</span></div>
+        <div class="av-menu-item" onclick="enableRealPush()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="vertical-align:-2px"><path d="M5 11 A7 7 0 0 1 19 11 V17 L21 19 H3 L5 17 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19 Q12 21 14 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/></svg> 진짜 푸시 켜기</div>
+        <div class="av-menu-item" onclick="testRealPush()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="vertical-align:-2px"><path d="M5 11 A7 7 0 0 1 19 11 V17 L21 19 H3 L5 17 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 4 L7.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M15 4 L16.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 19 Q12 21 14 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> 푸시 테스트</div>
+        <div class="av-menu-item" onclick="testNotification()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="vertical-align:-2px"><path d="M5 11 A7 7 0 0 1 19 11 V17 L21 19 H3 L5 17 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 4 L7.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M15 4 L16.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 19 Q12 21 14 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> 알림 테스트</div>
         <div class="av-menu-sep"></div>
         <div class="av-menu-item danger" onclick="doLogout()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="vertical-align:-2px"><path d="M14 4 H6 A2 2 0 0 0 4 6 V18 A2 2 0 0 0 6 20 H14" stroke="currentColor" stroke-width="1.6"/><path d="M14 8 L20 12 L14 16" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="10" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> 로그아웃</div>
       </div>
@@ -1141,6 +1145,70 @@ function _handleAuthErr(res){
   return false;
 }
 
+// ── 진짜 Web Push 알림 (아이폰/갤럭시 잠금화면) ──
+const PUSH_PUBLIC_KEY = 'BJh74RZxk4VrDHzZTJM7DG6ZZhyyHKyQl_P_5xLxqHC1NK95XO2NBg9Miwv7hPse43wHxGiu80EQQ0wPqSWej-U';
+
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for(let i=0;i<rawData.length;i++) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+function _pushSupported(){
+  return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+}
+async function _getPushRegistration(){
+  if(!_pushSupported()) throw new Error('이 기기는 Web Push를 지원하지 않아요.');
+  return await navigator.serviceWorker.register('sw.js?v=20260604-push');
+}
+async function enableRealPush(){
+  closeAvMenu();
+  if(!currentUser){ alert('로그인이 필요해요.'); return; }
+  if(!_pushSupported()){
+    alert('이 기기에서는 진짜 푸시 알림을 지원하지 않아요.\n아이폰은 iOS 16.4 이상 + 홈화면 앱 실행이 필요해요.');
+    return;
+  }
+  try{
+    const perm = await Notification.requestPermission();
+    if(perm !== 'granted'){
+      alert('알림 권한이 필요해요. 설정에서 OKGU DIARY 알림을 허용해 주세요.');
+      return;
+    }
+    const reg = await _getPushRegistration();
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(PUSH_PUBLIC_KEY)
+      });
+    }
+    google.script.run
+      .withSuccessHandler(function(res){
+        if(_handleAuthErr(res)) return;
+        if(res && res.success === false){ alert(res.msg || '푸시 등록 실패'); return; }
+        alert('진짜 푸시 알림이 켜졌어요. 이제 테스트를 눌러 확인해보세요.');
+      })
+      .withFailureHandler(function(e){ alert('푸시 등록 오류: ' + e.message); })
+      .savePushSubscription(_getToken(), currentUser.name, currentUser.role, JSON.stringify(sub));
+  }catch(e){
+    alert('푸시 등록 중 오류: ' + e.message);
+  }
+}
+function testRealPush(){
+  closeAvMenu();
+  if(!currentUser){ alert('로그인이 필요해요.'); return; }
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(_handleAuthErr(res)) return;
+      if(res && res.success === false){ alert(res.msg || '푸시 테스트 실패'); return; }
+      alert('푸시 테스트를 보냈어요. 잠금화면/알림센터를 확인해보세요.');
+    })
+    .withFailureHandler(function(e){ alert('푸시 테스트 오류: ' + e.message); })
+    .sendTestPush(_getToken());
+}
+
 // ── 일기 알림 (매일 밤 10시) ──
 let _notifTimer = null;
 
@@ -1178,6 +1246,32 @@ function toggleNotification(){
       alert('알림 권한이 필요해요.\n설정 → 알림에서 허용해 주세요.');
     }
   });
+}
+
+function testNotification(){
+  closeAvMenu();
+  if(!('Notification' in window)){
+    alert('이 기기에서는 알림 기능을 지원하지 않아요.');
+    return;
+  }
+  function fire(){
+    try{
+      new Notification('OKGU DIARY 알림 테스트', {
+        body: (currentUser && currentUser.name ? currentUser.name + '님, ' : '') + '알림이 정상적으로 도착했어요.',
+        icon: 'okgu_icon.png'
+      });
+    }catch(e){
+      alert('알림을 띄우지 못했어요: ' + e.message);
+    }
+  }
+  if(Notification.permission === 'granted'){
+    fire();
+  } else {
+    Notification.requestPermission().then(function(perm){
+      if(perm === 'granted') fire();
+      else alert('알림 권한이 필요해요. 브라우저/아이폰 설정에서 알림을 허용해 주세요.');
+    });
+  }
 }
 
 function _scheduleDiaryNotif(){

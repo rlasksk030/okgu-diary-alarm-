@@ -1,27 +1,58 @@
-// 옥구초 일기 알림 서비스워커
-const DIARY_URL = ''; // 3단계에서 일기앱 exec URL 채움
+// OKGU DIARY Web Push service worker
+const DIARY_URL = 'https://rlasksk030.github.io/okgu-diary-alarm-/';
 
-self.addEventListener('install', e => self.skipWaiting());
-self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-
-// 푸시 수신(2단계부터 사용)
-self.addEventListener('push', e => {
-  let d = { title: '옥구초 일기', body: '오늘 일기 썼어? ✍️' };
-  try { if (e.data) d = Object.assign(d, e.data.json()); } catch (_) {}
-  e.waitUntil(self.registration.showNotification(d.title, {
-    body: d.body,
-    icon: 'okgu_icon.png',
-    badge: 'okgu_icon.png',
-    data: { url: d.url || DIARY_URL }
-  }));
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
 });
 
-// 알림 탭 → 일기앱 열기
-self.addEventListener('notificationclick', e => {
-  e.notification.close();
-  const url = (e.notification.data && e.notification.data.url) || DIARY_URL || './';
-  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cl => {
-    for (const c of cl) { if ('focus' in c) return c.focus(); }
-    if (self.clients.openWindow) return self.clients.openWindow(url);
-  }));
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener('push', (event) => {
+  let data = {
+    title: 'OKGU DIARY',
+    body: '새 알림이 있어요.',
+    url: DIARY_URL,
+    tag: 'okgu-diary',
+    icon: 'okgu_icon.png'
+  };
+
+  try {
+    if (event.data) data = Object.assign(data, event.data.json());
+  } catch (err) {
+    try {
+      data.body = event.data ? event.data.text() : data.body;
+    } catch (_) {}
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'OKGU DIARY', {
+      body: data.body || '새 알림이 있어요.',
+      icon: data.icon || 'okgu_icon.png',
+      badge: 'okgu_icon.png',
+      tag: data.tag || 'okgu-diary',
+      renotify: true,
+      data: { url: data.url || DIARY_URL }
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || DIARY_URL;
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if ('focus' in client) {
+          client.focus();
+          if ('navigate' in client) return client.navigate(url);
+          return client;
+        }
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(url);
+      return undefined;
+    })
+  );
 });
