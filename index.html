@@ -895,6 +895,32 @@ function normDate(val){
   if(s.includes('T')) return s.split('T')[0];
   return s;
 }
+function fmtLocalDateTime(dt){
+  if(!dt || isNaN(dt.getTime())) return '';
+  const m = dt.getMonth() + 1;
+  const d = dt.getDate();
+  const h = dt.getHours();
+  const min = String(dt.getMinutes()).padStart(2,'0');
+  const ap = h < 12 ? '오전' : '오후';
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return m + '월 ' + d + '일 ' + ap + ' ' + h12 + ':' + min;
+}
+function formatBoardCommentDateTime(c){
+  c = c || {};
+  if(c.timeFull || c.datetime || c.savedTime) return String(c.timeFull || c.datetime || c.savedTime);
+  if(c.createdAt || c.createdTime || c.timestamp){
+    const dt = new Date(c.createdAt || c.createdTime || c.timestamp);
+    const label = fmtLocalDateTime(dt);
+    if(label) return label;
+  }
+  const idMatch = String(c.id || '').match(/(\d{13})/);
+  if(idMatch){
+    const label = fmtLocalDateTime(new Date(Number(idMatch[1])));
+    if(label) return label;
+  }
+  if(c.time && c.timeHM && !String(c.time).includes(c.timeHM)) return String(c.time) + ' ' + String(c.timeHM);
+  return String(c.time || c.timeHM || '');
+}
 function showLoading(on){
   document.getElementById('loading-overlay').style.display = on ? 'flex' : 'none';
 }
@@ -1999,7 +2025,7 @@ function renderBoardPost(p, idx){
     const renderCmt = function(c, depth){
       const cmtIdJs = escJs(c.id);
       const isMyCmt = currentUser && c.author === currentUser.name;
-      const cmtDateTime = c.timeFull || c.datetime || c.savedTime || ((c.time && c.timeHM && !String(c.time).includes(c.timeHM)) ? (c.time + ' ' + c.timeHM) : (c.time || c.timeHM || ''));
+      const cmtDateTime = formatBoardCommentDateTime(c);
       const cmtTime = cmtDateTime ? `<span style="font-size:9px;color:var(--text3);margin-left:4px;">${esc(cmtDateTime)}</span>` : '';
       const parent  = c.parentId ? cmtById[c.parentId] : null;
       const mention = parent ? `<span style="font-size:10px;color:var(--text3);margin-left:3px;">→ @${esc(parent.author)}</span>` : '';
@@ -2197,7 +2223,8 @@ function submitComment(idx, postId){
         author: currentUser.name,
         text: text,
         parentId: '',
-        time: (function(dt){var m=dt.getMonth()+1,d=dt.getDate(),h=dt.getHours(),mi=String(dt.getMinutes()).padStart(2,'0'),ap=h<12?'오전':'오후',h12=h===0?12:h>12?h-12:h;return m+'월 '+d+'일 '+ap+' '+h12+':'+mi;})(new Date()),
+        time: fmtLocalDateTime(new Date()),
+        timeFull: fmtLocalDateTime(new Date()),
         timeHM: new Date().toTimeString().substring(0,5)
       });
       refreshBoardPost(idx, true);
@@ -2239,7 +2266,8 @@ function submitReply(parentCmtId, postIdx, postId){
         author: currentUser.name,
         text: text,
         parentId: parentCmtId,
-        time: (function(dt){var m=dt.getMonth()+1,d=dt.getDate(),h=dt.getHours(),mi=String(dt.getMinutes()).padStart(2,'0'),ap=h<12?'오전':'오후',h12=h===0?12:h>12?h-12:h;return m+'월 '+d+'일 '+ap+' '+h12+':'+mi;})(new Date()),
+        time: fmtLocalDateTime(new Date()),
+        timeFull: fmtLocalDateTime(new Date()),
         timeHM: new Date().toTimeString().substring(0,5)
       });
       refreshBoardPost(postIdx, true);
