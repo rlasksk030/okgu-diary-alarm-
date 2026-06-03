@@ -401,26 +401,13 @@ input.mo:checked+.tsl{background:#111;}
 .noti-time{font-size:10px;color:var(--text3);margin-top:2px;}
 </style>
 <script>
-/* === GitHub(외부 호스팅)용 시프트: google.script.run -> Cloudflare Worker /rpc === */
+/* GitHub JSONP shim */
 (function(){
-  if (window.google && window.google.script && window.google.script.run) return; // 앱스스크립트 안이면 그대로
-  var RPC = 'https://okgu-push.rlasksk030.workers.dev/rpc';
-  var FNS = ["addComment","addStudentReplyToDiary","addTeacherComment","changePin","deleteBoard","deleteComment","deleteEntry","deleteEntryAsTeacher","deletePraiseAsTeacher","deleteTeacherComment","editComment","editTeacherComment","exportMoodStatsCsv","getBoard","getClassMoodStats","getClassOverview","getMoodTrend","getMyEntries","getNotifications","getPraise","getRecentEntries","getStudentDashboard","getStudentEntries","getStudents","listAllPraiseForTeacher","listStudentFlags","login","logout","saveEntry","sendPraise","setPraiseHidden","setPraiseStatus","setStudentCounselFlag","toggleLike","uploadPhoto","verifyToken"];
-  function Runner(){ this._s=null; this._f=null; }
-  Runner.prototype.withSuccessHandler=function(f){ this._s=f; return this; };
-  Runner.prototype.withFailureHandler=function(f){ this._f=f; return this; };
-  FNS.forEach(function(name){
-    Runner.prototype[name]=function(){
-      var args=[].slice.call(arguments), s=this._s, f=this._f;
-      fetch(RPC,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn:name,args:args})})
-        .then(function(r){return r.json();})
-        .then(function(j){ if(j&&j.ok){ if(s)s(j.result); } else { var er=new Error((j&&j.error)||'RPC 실패'); if(f)f(er); else console.error('RPC',name,er);} })
-        .catch(function(e){ if(f)f(e); else console.error('RPC',name,e); });
-    };
-  });
-  window.google = window.google || {};
-  window.google.script = window.google.script || {};
-  Object.defineProperty(window.google.script,'run',{ configurable:true, get:function(){ return new Runner(); } });
+if(window.google&&window.google.script&&window.google.script.run)return;
+var EXEC='https://script.google.com/macros/s/AKfycbw9W2S21s2iUOrycFKRISBNMjvPa6MAnaAk3voq3vlKeeBzJ6PgqtuenXtsSUWfdoKzUg/exec';
+var FNS=["addComment","addStudentReplyToDiary","addTeacherComment","changePin","deleteBoard","deleteComment","deleteEntry","deleteEntryAsTeacher","deletePraiseAsTeacher","deleteTeacherComment","editComment","editTeacherComment","exportMoodStatsCsv","getBoard","getClassMoodStats","getClassOverview","getMoodTrend","getMyEntries","getNotifications","getPraise","getRecentEntries","getStudentDashboard","getStudentEntries","getStudents","listAllPraiseForTeacher","listStudentFlags","login","logout","saveEntry","sendPraise","setPraiseHidden","setPraiseStatus","setStudentCounselFlag","toggleLike","uploadPhoto","verifyToken"];var seq=0;
+function call(name,args,s,f){var cb="__jp"+(++seq)+"_"+Date.now();var sc=document.createElement("script");var tm=setTimeout(function(){cl();if(f)f(new Error("시간초과"));},30000);function cl(){clearTimeout(tm);try{delete window[cb];}catch(e){}if(sc.parentNode)sc.parentNode.removeChild(sc);}window[cb]=function(r){cl();if(r&&r.ok){if(s)s(r.result);}else{var er=new Error((r&&r.error)||"오류");if(f)f(er);else console.error(name,er);}};sc.onerror=function(){cl();if(f)f(new Error("네트워크오류"));};var url=EXEC+"?fn="+encodeURIComponent(name)+"&callback="+cb+"&p="+encodeURIComponent(JSON.stringify(args||[]));if(url.length>7500){cl();if(f)f(new Error("큰데이터 미지원(사진)"));return;}sc.src=url;(document.head||document.documentElement).appendChild(sc);}
+function R(){this._s=null;this._f=null;}R.prototype.withSuccessHandler=function(fn){this._s=fn;return this;};R.prototype.withFailureHandler=function(fn){this._f=fn;return this;};FNS.forEach(function(n){R.prototype[n]=function(){call(n,[].slice.call(arguments),this._s,this._f);};});window.google=window.google||{};window.google.script=window.google.script||{};Object.defineProperty(window.google.script,"run",{configurable:true,get:function(){return new R();}});
 })();
 </script>
 </head>
