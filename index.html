@@ -1308,17 +1308,11 @@ function goTo(id, title, sub, el){
 
 // ── 알림 배지 ──
 function refreshNotifications(){
-  if(!currentUser || currentUser.role === '선생님') return; // 학생만
-  google.script.run
-    .withSuccessHandler(function(res){
-      if(!res || res.success === false) return;
-      const d = res.data || res;
-      setBadge('badge-write',  d.teacherComment || 0);
-      setBadge('badge-board',  d.board || 0);
-      setBadge('badge-praise', d.praise || 0);
-    })
-    .withFailureHandler(function(){})
-    .getNotifications(currentUser.name);
+  // 안정판: 현재 서버의 getNotifications/markSeen 계약이 프론트와 달라 배지 호출은 비활성화.
+  // 일기 로드와 저장 흐름을 막지 않도록 조용히 건너뜀.
+  setBadge('badge-write', 0);
+  setBadge('badge-board', 0);
+  setBadge('badge-praise', 0);
 }
 function setBadge(id, count){
   const el = document.getElementById(id);
@@ -1331,11 +1325,7 @@ function setBadge(id, count){
   }
 }
 function markChannelSeen(channel){
-  if(!currentUser || currentUser.role === '선생님') return;
-  google.script.run
-    .withSuccessHandler(function(){ setTimeout(refreshNotifications, 300); })
-    .withFailureHandler(function(){})
-    .markSeen(currentUser.name, channel);
+  // 안정판: 서버에 markSeen 함수가 없으므로 no-op.
 }
 
 // ========================
@@ -1542,25 +1532,46 @@ function printClassYearbooks(){
   const w = window.open('', '_blank');
   if(!w){ alert('팝업이 차단됐어요. 팝업 허용 후 다시 시도해주세요.'); return; }
   w.document.write('<p style="font-family:sans-serif;padding:30px;">📚 학급 일기책 만드는 중... 잠시만요.</p>');
+
   google.script.run
-    .withSuccessHandler(function(res){
-      if(!res || res.success === false){
-        w.document.body.innerHTML = '<p style="font-family:sans-serif;padding:30px;color:#c00;">데이터 로드 실패: '+(res&&res.msg||'알 수 없는 오류')+'</p>';
+    .withSuccessHandler(function(overview){
+      const names = (overview || []).map(function(s){ return s.name; }).filter(Boolean);
+      if(!names.length){
+        w.document.body.innerHTML = '<p style="font-family:sans-serif;padding:30px;">학생 목록을 불러오지 못했어요.</p>';
         return;
       }
-      const data = res.data || res;
-      const sections = (data.students || []).filter(function(s){ return s.entries && s.entries.length; });
-      if(!sections.length){
-        w.document.body.innerHTML = '<p style="font-family:sans-serif;padding:30px;">아직 작성된 일기가 없어요.</p>';
-        return;
+      const sections = [];
+      let i = 0;
+      function next(){
+        if(i >= names.length){
+          const filled = sections.filter(function(s){ return s.entries && s.entries.length; });
+          if(!filled.length){
+            w.document.body.innerHTML = '<p style="font-family:sans-serif;padding:30px;">아직 작성된 일기가 없어요.</p>';
+            return;
+          }
+          const html = _yearbookHTML('학급 일기책 (' + new Date().getFullYear() + ')', filled);
+          w.document.open(); w.document.write(html); w.document.close();
+          return;
+        }
+        const name = names[i++];
+        w.document.body.innerHTML = '<p style="font-family:sans-serif;padding:30px;">📚 ' + name + ' 일기 불러오는 중... (' + i + '/' + names.length + ')</p>';
+        google.script.run
+          .withSuccessHandler(function(entries){
+            sections.push({ studentName: name, entries: entries || [] });
+            next();
+          })
+          .withFailureHandler(function(){
+            sections.push({ studentName: name, entries: [] });
+            next();
+          })
+          .getStudentEntries(token, name);
       }
-      const html = _yearbookHTML('학급 일기책 (' + new Date().getFullYear() + ')', sections);
-      w.document.open(); w.document.write(html); w.document.close();
+      next();
     })
     .withFailureHandler(function(e){
       w.document.body.innerHTML = '<p style="font-family:sans-serif;padding:30px;color:#c00;">서버 오류: '+e.message+'</p>';
     })
-    .getAllStudentsYearbookData(token);
+    .getClassOverview(token);
 }
 
 // ── 글쓰기 도우미: 감정 단어 + 글감 질문 ──
@@ -1936,8 +1947,8 @@ function loadBoard(reset){
   google.script.run
     .withSuccessHandler(function(res){
       _boardLoading = false;
-      // 백엔드가 객체 {posts,total,hasMore} 반환
-      const newPosts = (res && res.posts) ? res.posts : [];
+      // 안정판: 기존 서버는 배열을, 새 서버는 {posts, hasMore}를 반환할 수 있음
+      const newPosts = Array.isArray(res) ? res : ((res && res.posts) ? res.posts : []);
       _boardHasMore = !!(res && res.hasMore);
       const startIdx = boardPosts.length;
       boardPosts = boardPosts.concat(newPosts);
@@ -1950,7 +1961,7 @@ function loadBoard(reset){
       console.error(e);
       document.getElementById('board-list').innerHTML='<div class="no-entry">게시판을 불러오지 못했어요</div>';
     })
-    .getBoard(boardFilter, currentUser.name, { limit: BOARD_PAGE_SIZE, offset: _boardOffset });
+    .getBoard(boardFilter, currentUser.name);
 }
 function loadMoreBoard(){
   if(!_boardHasMore || _boardLoading) return;
@@ -2748,36 +2759,57 @@ function loadDashboard(){
   _loadDashboardBundleOnly();
 }
 function _loadDashboardBundleOnly(){
-  // 나머지 5개 섹션은 번들 RPC 1회 호출로 통합
+  // 안정판: 서버에 실제로 있는 함수들을 각각 호출한다.
+  // getTeacherDashboardBundle 서버 함수가 없어도 교사 대시보드가 동작한다.
+  const token = _getToken();
+
+  google.script.run
+    .withSuccessHandler(function(data){
+      classOverview = data || [];
+      renderStudentList();
+    })
+    .withFailureHandler(function(e){ console.error('class overview err:', e); })
+    .getClassOverview(token);
+
   google.script.run
     .withSuccessHandler(function(res){
       if(_handleAuthErr(res)) return;
-      if(!res || !res.success){ console.error('dashboard bundle failed:', res); return; }
-      // 1) 학생 개요
-      classOverview = res.overview || [];
-      // 2) 학생 플래그
-      studentFlags  = res.flags || {};
-      // 3) 기분 통계
-      renderDashMoodBars(res.moodStats || { counts:{}, total:0 });
-      // 4) 감정 추이
-      renderMoodTrend((res.trend && res.trend.points) || []);
-      // 5) 칭찬 검열
-      praiseModItems = (res.praise && res.praise.items) || [];
-      const pendCnt = praiseModItems.filter(function(p){ return p.status==='pending'; }).length;
-      const pBadge = document.getElementById('ds-praise-pending-count');
-      if(pBadge){ pBadge.textContent = pendCnt; pBadge.style.display = pendCnt>0 ? 'inline-block' : 'none'; }
-      const pSubBadge = document.getElementById('tsub-praise-badge');
-      if(pSubBadge){ pSubBadge.textContent = pendCnt; pSubBadge.classList.toggle('on', pendCnt>0); }
-      renderPraiseMod();
-      // 학생 리스트/상담 리스트 + 상담 뱃지
+      studentFlags = (res && res.success && res.flags) ? res.flags : {};
       renderStudentList();
       renderCounselList();
       const counselCnt = Object.keys(studentFlags).filter(function(n){ return studentFlags[n] && studentFlags[n].counsel; }).length;
       const cBadge = document.getElementById('tsub-counsel-badge');
       if(cBadge){ cBadge.textContent = counselCnt; cBadge.classList.toggle('on', counselCnt>0); }
     })
-    .withFailureHandler(function(e){ console.error('dashboard bundle err:', e); })
-    .getTeacherDashboardBundle(_getToken(), dashPeriod, trendPeriod);
+    .withFailureHandler(function(e){ studentFlags = {}; renderStudentList(); renderCounselList(); console.error('student flags err:', e); })
+    .listStudentFlags(token);
+
+  google.script.run
+    .withSuccessHandler(function(data){ renderDashMoodBars(data || { counts:{}, total:0 }); })
+    .withFailureHandler(function(e){ console.error('class mood stats err:', e); })
+    .getClassMoodStats(token, dashPeriod);
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(_handleAuthErr(res)) return;
+      renderMoodTrend((res && res.success && res.points) ? res.points : []);
+    })
+    .withFailureHandler(function(e){ renderMoodTrend([]); console.error('mood trend err:', e); })
+    .getMoodTrend(token, trendPeriod);
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(_handleAuthErr(res)) return;
+      praiseModItems = (res && res.success && res.items) ? res.items : [];
+      const pendCnt = praiseModItems.filter(function(p){ return p.status==='pending'; }).length;
+      const pBadge = document.getElementById('ds-praise-pending-count');
+      if(pBadge){ pBadge.textContent = pendCnt; pBadge.style.display = pendCnt>0 ? 'inline-block' : 'none'; }
+      const pSubBadge = document.getElementById('tsub-praise-badge');
+      if(pSubBadge){ pSubBadge.textContent = pendCnt; pSubBadge.classList.toggle('on', pendCnt>0); }
+      renderPraiseMod();
+    })
+    .withFailureHandler(function(e){ praiseModItems = []; renderPraiseMod(); console.error('praise moderation err:', e); })
+    .listAllPraiseForTeacher(token);
 }
 
 // ── 상담 필요 태그 (SVG 플래그 톤) ──
@@ -3018,7 +3050,8 @@ function loadFeed(reset){
       _feedLoading = false;
       const rows = entries || [];
       const newRows = rows.slice(0, FEED_PAGE_SIZE);
-      _feedHasMore = rows.length > FEED_PAGE_SIZE;
+      // 기존 서버는 offset을 지원하지 않으므로 안정판에서는 피드 더보기를 끈다.
+      _feedHasMore = false;
       const startIdx = feedEntries.length;
       if(isReset){
         feedEntries = newRows;
@@ -3031,7 +3064,7 @@ function loadFeed(reset){
       }
     })
     .withFailureHandler(function(e){ _feedLoading = false; console.error(e); })
-    .getRecentEntries(FEED_PAGE_SIZE + 1, pageOffset);
+    .getRecentEntries(_getToken(), FEED_PAGE_SIZE + 1);
 }
 
 function loadMoreFeed(){
@@ -3312,7 +3345,7 @@ function openStudentDiary(name){
       renderModalDiaries(entries || []);
     })
     .withFailureHandler(console.error)
-    .getStudentEntries(name);
+    .getStudentEntries(_getToken(), name);
 }
 
 let _modalStudentName = ''; // 현재 열려있는 학생 이름
