@@ -1999,7 +1999,8 @@ function renderBoardPost(p, idx){
     const renderCmt = function(c, depth){
       const cmtIdJs = escJs(c.id);
       const isMyCmt = currentUser && c.author === currentUser.name;
-      const cmtTime = (c.time || c.timeHM) ? `<span style="font-size:9px;color:var(--text3);margin-left:4px;">${c.time || c.timeHM}</span>` : '';
+      const cmtDateTime = c.timeFull || c.datetime || c.savedTime || ((c.time && c.timeHM && !String(c.time).includes(c.timeHM)) ? (c.time + ' ' + c.timeHM) : (c.time || c.timeHM || ''));
+      const cmtTime = cmtDateTime ? `<span style="font-size:9px;color:var(--text3);margin-left:4px;">${esc(cmtDateTime)}</span>` : '';
       const parent  = c.parentId ? cmtById[c.parentId] : null;
       const mention = parent ? `<span style="font-size:10px;color:var(--text3);margin-left:3px;">→ @${esc(parent.author)}</span>` : '';
       const orphanTag = (c.parentId && !parent) ? `<span style="font-size:9px;color:var(--text3);margin-left:3px;">(삭제된 댓글에 대한 답글)</span>` : '';
@@ -2510,19 +2511,29 @@ function showStatDay(dateKey){
           const isTch=(c.role||'선생님')==='선생님';
           const dispNm=isTch?`${esc(c.teacher)} 선생님`:esc(c.teacher);
           const tHM = c.timeHM ? `<span style="font-size:9px;color:var(--text3);margin-left:4px;">${c.timeHM}</span>` : '';
-          const isMyTc = currentUser && c.teacher === currentUser.name;
+          const isMyTc = currentUser && currentUser.role === '선생님' && c.teacher === currentUser.name;
+          const tcIdJs = escJs(c.id);
+          const diaryIdJs = escJs(e.id);
           const tcBtns = isMyTc ? `<span style="margin-left:auto;display:flex;gap:3px;">
-            <button onclick="editStatTc('${c.id}')" style="font-size:9px;padding:1px 5px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;color:var(--text3);">수정</button>
-            <button onclick="deleteStatTc('${c.id}','${e.id}')" style="font-size:9px;padding:1px 5px;border:1px solid #CFCFCF;border-radius:4px;background:#fff;cursor:pointer;color:#111;">삭제</button>
+            <button onclick="editStatTc('${tcIdJs}')" style="font-size:9px;padding:1px 5px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;color:var(--text3);">수정</button>
+            <button onclick="deleteStatTc('${tcIdJs}','${diaryIdJs}')" style="font-size:9px;padding:1px 5px;border:1px solid #CFCFCF;border-radius:4px;background:#fff;cursor:pointer;color:#111;">삭제</button>
           </span>` : '';
+          const tcReplyBtn = (currentUser && currentUser.role !== '선생님' && isTch) ? `<button onclick="openStatTcReply('${tcIdJs}')" style="margin-left:auto;font-size:9px;padding:1px 6px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;color:var(--text2);">답글</button>` : '';
           return `<div class="student-tc-item" id="stc-${c.id}">
-            <div style="display:flex;align-items:center;flex-wrap:nowrap;"><span class="student-tc-from">${dispNm}:</span>${tHM}${tcBtns}</div>
+            <div style="display:flex;align-items:center;flex-wrap:nowrap;"><span class="student-tc-from">${dispNm}:</span>${tHM}${tcBtns}${tcReplyBtn}</div>
             <div id="stctext-${c.id}">${esc(c.text)}</div>
             <div id="stcedit-${c.id}" style="display:none;">
               <input style="width:100%;padding:4px 7px;font-size:12px;border:1px solid var(--green);border-radius:6px;margin-top:3px;" id="stcinput-${c.id}" value="${esc(c.text)}">
               <div style="display:flex;gap:4px;margin-top:3px;">
-                <button onclick="submitEditStatTc('${c.id}')" style="font-size:10px;padding:2px 8px;border:none;border-radius:5px;background:var(--green);color:#fff;cursor:pointer;">저장</button>
-                <button onclick="cancelEditStatTc('${c.id}')" style="font-size:10px;padding:2px 8px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;">취소</button>
+                <button onclick="submitEditStatTc('${tcIdJs}')" style="font-size:10px;padding:2px 8px;border:none;border-radius:5px;background:var(--green);color:#fff;cursor:pointer;">저장</button>
+                <button onclick="cancelEditStatTc('${tcIdJs}')" style="font-size:10px;padding:2px 8px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;">취소</button>
+              </div>
+            </div>
+            <div id="stcreply-${c.id}" style="display:none;margin-top:5px;">
+              <div style="display:flex;gap:4px;">
+                <input style="flex:1;padding:5px 9px;font-size:12px;border:.5px solid var(--border);border-radius:99px;background:#fff;font-family:var(--font);" id="stcreplyinput-${c.id}" placeholder="선생님께 답글...">
+                <button onclick="submitStatTcReply('${diaryIdJs}','${tcIdJs}')" style="font-size:10px;padding:2px 9px;border:none;border-radius:99px;background:#111;color:#fff;cursor:pointer;">전송</button>
+                <button onclick="closeStatTcReply('${tcIdJs}')" style="font-size:10px;padding:2px 8px;border:1px solid var(--border);border-radius:99px;background:#fff;cursor:pointer;">취소</button>
               </div>
             </div>
           </div>`;
@@ -3498,6 +3509,44 @@ function deleteStatTc(commentId, diaryId){
       .withFailureHandler(console.error)
       .deleteTeacherComment(_getToken(), commentId);
   });
+}
+
+// ── 학생: 선생님 댓글에 답글 달기 ──
+function openStatTcReply(commentId){
+  const el = document.getElementById('stcreply-'+commentId);
+  if(!el) return;
+  el.style.display = 'block';
+  const inp = document.getElementById('stcreplyinput-'+commentId);
+  if(inp) inp.focus();
+}
+function closeStatTcReply(commentId){
+  const el = document.getElementById('stcreply-'+commentId);
+  if(el) el.style.display = 'none';
+  const inp = document.getElementById('stcreplyinput-'+commentId);
+  if(inp) inp.value = '';
+}
+function submitStatTcReply(diaryId, commentId){
+  const inp = document.getElementById('stcreplyinput-'+commentId);
+  const text = inp ? inp.value.trim() : '';
+  if(!text) return;
+  const row = document.getElementById('stc-'+commentId);
+  inp.disabled = true;
+  google.script.run
+    .withSuccessHandler(function(res){
+      inp.disabled = false;
+      if(res && res.success === false){ alert(res.msg || '답글 전송 실패'); return; }
+      const replyId = (res && res.id) || ('sr_local_'+Date.now());
+      const html = '<div class="student-tc-item" id="stc-'+replyId+'" style="margin-left:12px;border-left:2px solid #ddd;padding-left:8px;">' +
+        '<div style="display:flex;align-items:center;flex-wrap:nowrap;"><span class="student-tc-from">'+esc(currentUser.name)+':</span><span style="font-size:9px;color:var(--text3);margin-left:4px;">방금</span></div>' +
+        '<div>'+esc(text)+'</div></div>';
+      if(row) row.insertAdjacentHTML('afterend', html);
+      closeStatTcReply(commentId);
+    })
+    .withFailureHandler(function(e){
+      inp.disabled = false;
+      alert('답글 전송 중 오류: '+e.message);
+    })
+    .addStudentReplyToDiary(diaryId, currentUser.name, text);
 }
 
 // ── 모달(교사 학생일기) 댓글 수정/삭제 ──
