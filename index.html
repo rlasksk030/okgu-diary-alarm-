@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="일기알림">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>옥구초 일기 알림</title>
+<style>
+  :root{--g:#111;--bd:#e5e5e5;--t2:#666}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;
+       background:#fafafa;color:#111;padding:24px 18px;max-width:480px;margin:0 auto}
+  h1{font-size:20px;margin:8px 0 4px}
+  p{color:var(--t2);font-size:14px;line-height:1.6}
+  .card{background:#fff;border:.5px solid var(--bd);border-radius:16px;padding:18px;margin-top:16px}
+  button{width:100%;padding:14px;border:none;border-radius:12px;background:var(--g);color:#fff;
+         font-size:15px;font-weight:600;cursor:pointer;margin-top:10px}
+  button.sub{background:#fff;color:#111;border:1px solid var(--bd)}
+  button:disabled{opacity:.4}
+  .status{font-size:13px;margin-top:14px;padding:10px 12px;border-radius:10px;background:#f2f2f2;white-space:pre-wrap}
+  ol{font-size:13px;color:var(--t2);line-height:1.8;padding-left:18px}
+  .ok{color:#137333}.no{color:#c5221f}
+</style>
+</head>
+<body>
+  <h1>옥구초 일기 알림 🔔</h1>
+  <p>아이폰에서 알림이 뜨는지 먼저 확인하는 테스트 화면이에요.</p>
+
+  <div class="card">
+    <strong style="font-size:14px">① 홈 화면에 추가</strong>
+    <ol>
+      <li>사파리 아래 <b>공유</b> 버튼 → <b>홈 화면에 추가</b></li>
+      <li>홈 화면에 생긴 <b>일기알림</b> 아이콘으로 이 페이지를 다시 열기</li>
+    </ol>
+    <p style="margin:6px 0 0">※ 아이폰은 <b>홈 화면 앱으로 열었을 때만</b> 알림이 됩니다.</p>
+  </div>
+
+  <div class="card">
+    <strong style="font-size:14px">② 알림 켜고 테스트</strong>
+    <button id="btn-enable">알림 켜기</button>
+    <button id="btn-test" class="sub" disabled>테스트 알림 보내기</button>
+    <div class="status" id="status">대기 중…</div>
+  </div>
+
+<script>
+const $ = s => document.querySelector(s);
+const log = (m, cls) => { const e=$('#status'); e.textContent=m; e.className='status '+(cls||''); };
+const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+let reg = null;
+async function registerSW(){
+  if(!('serviceWorker' in navigator)) throw new Error('이 브라우저는 서비스워커 미지원');
+  reg = await navigator.serviceWorker.register('sw.js');
+  await navigator.serviceWorker.ready;
+  return reg;
+}
+
+$('#btn-enable').onclick = async () => {
+  try{
+    if(!standalone){ log('먼저 ①번대로 홈 화면에 추가한 뒤, 그 아이콘으로 열어주세요.', 'no'); return; }
+    if(!('Notification' in window)){ log('이 기기는 웹 알림을 지원하지 않아요.', 'no'); return; }
+    const perm = await Notification.requestPermission();
+    if(perm !== 'granted'){ log('알림 권한이 거부됐어요.\n설정 → 일기알림 → 알림 허용을 켜주세요.', 'no'); return; }
+    await registerSW();
+    $('#btn-test').disabled = false;
+    log('알림 권한 허용됨 ✓\n이제 "테스트 알림 보내기"를 눌러보세요.', 'ok');
+  }catch(e){ log('오류: '+e.message, 'no'); }
+};
+
+$('#btn-test').onclick = async () => {
+  try{
+    if(!reg) await registerSW();
+    await reg.showNotification('옥구초 일기 🔔', {
+      body: '테스트 알림이에요! 이렇게 뜨면 성공 🎉',
+      icon: 'icons/icon-192.png',
+      badge: 'icons/icon-192.png'
+    });
+    log('테스트 알림을 보냈어요. 화면 위/잠금화면을 확인해보세요.', 'ok');
+  }catch(e){ log('오류: '+e.message, 'no'); }
+};
+
+// 초기 상태 안내
+if(!standalone){
+  log('지금은 사파리 탭이에요. ①번대로 홈 화면에 추가해 그 아이콘으로 열어야 알림이 됩니다.');
+} else {
+  log('홈 화면 앱으로 열렸어요 ✓  "알림 켜기"를 눌러주세요.', 'ok');
+}
+</script>
+</body>
+</html>
