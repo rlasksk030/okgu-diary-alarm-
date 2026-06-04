@@ -882,6 +882,7 @@ let _studentListLoading = false;
 let _saveInProgress = false;
 let _quickDiarySaving = false;
 let _pendingDeepLink = null;
+let _deepLinkLoadAttempts = 0;
 let _praiseSending = false;
 
 // ========================
@@ -1569,20 +1570,28 @@ function tryDeepLinkAfterRender(){
   const target = _pendingDeepLink;
   if(target.open === 'board' && target.id){
     const el = document.querySelector('[data-post-id="'+cssAttrEscape(target.id)+'"]');
-    if(el){ highlightTarget(el); finishDeepLink(); }
+    if(el){ highlightTarget(el); finishDeepLink(); _deepLinkLoadAttempts = 0; }
+    else if(_boardHasMore && !_boardLoading && _deepLinkLoadAttempts < 12){
+      _deepLinkLoadAttempts++;
+      loadMoreBoard();
+    }
     return;
   }
   if(target.open === 'diary' && target.id){
     if(currentUser && currentUser.role === '선생님'){
       const el = document.querySelector('[data-diary-id="'+cssAttrEscape(target.id)+'"]');
-      if(el){ highlightTarget(el); finishDeepLink(); }
+      if(el){ highlightTarget(el); finishDeepLink(); _deepLinkLoadAttempts = 0; }
+      else if(_feedHasMore && !_feedLoading && _deepLinkLoadAttempts < 12){
+        _deepLinkLoadAttempts++;
+        loadMoreFeed();
+      }
     } else {
       const entry = (myEntries || []).find(function(e){ return String(e.id) === String(target.id); });
       if(entry){
         showStatDay(normDate(entry.date));
         setTimeout(function(){
           const el = document.querySelector('[data-diary-id="'+cssAttrEscape(target.id)+'"]');
-          if(el){ highlightTarget(el); finishDeepLink(); }
+          if(el){ highlightTarget(el); finishDeepLink(); _deepLinkLoadAttempts = 0; }
         }, 80);
       }
     }
