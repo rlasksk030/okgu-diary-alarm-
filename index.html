@@ -868,6 +868,18 @@ let currentUser = null;   // { name, role, cls }
 let myEntries   = [];     // 내 일기 목록 (서버에서 가져온 것)
 let boardPosts  = [];     // 게시판 목록
 let praiseData  = null;   // { received:[], sent:[] }
+const LOAD_TTL_FAST = 45 * 1000;
+const LOAD_TTL_MED  = 60 * 1000;
+let _loadStamp = {};
+function _freshLoad(key, ttl){
+  return Date.now() - Number(_loadStamp[key] || 0) < ttl;
+}
+function _markLoad(key){
+  _loadStamp[key] = Date.now();
+}
+function _clearLoad(key){
+  _loadStamp[key] = 0;
+}
 let studentList = [];     // 학생 이름 목록 (칭찬 자동완성)
 let curMood     = { emoji:'😄', label:'신남', color:'#111' };
 let curStatPeriod = 'week';
@@ -1604,10 +1616,16 @@ function finishDeepLink(){
 // ========================
 //  내 일기 로드
 // ========================
-function loadMyEntries(cb){
+function loadMyEntries(cb, force){
+  if(!force && myEntries.length && _freshLoad('myEntries', LOAD_TTL_MED)){
+    renderStreak();
+    if(cb) cb();
+    return;
+  }
   google.script.run
     .withSuccessHandler(function(entries){
       myEntries = entries || [];
+      _markLoad('myEntries');
       renderStreak();
       if(cb) cb();
     })
@@ -2095,7 +2113,8 @@ function _doSaveEntry(date, text, isSecret, isPublic, isMeOnly, photoUrlsJson, s
       setTimeout(()=>msg.style.display='none', 2500);
       // ✨ 완료 도장 애니메이션
       showStamp((currentUser && currentUser.name ? currentUser.name : '') + ' 수고했어!');
-      loadMyEntries();
+      _clearLoad('myEntries'); _clearLoad('stat'); _clearLoad('feed'); _clearLoad('board:all'); _clearLoad('board:mine');
+      loadMyEntries(null, true);
     })
     .withFailureHandler(function(e){
       setSaveBusy(false);
@@ -2209,10 +2228,16 @@ let _boardOffset = 0;
 let _boardHasMore = false;
 let _boardLoading = false;
 
-function loadBoard(reset){
+function loadBoard(reset, force){
+  const isReset = reset !== false;
+  if(isReset && !force && boardPosts.length && _freshLoad('board:' + boardFilter, LOAD_TTL_FAST)){
+    renderBoard();
+    tryDeepLinkAfterRender();
+    return;
+  }
   if(_boardLoading) return;
   _boardLoading = true;
-  if(reset !== false){
+  if(isReset){
     _boardOffset = 0;
     boardPosts = [];
     document.getElementById('board-list').innerHTML='<div class="no-entry">불러오는 중...</div>';
@@ -2226,6 +2251,7 @@ function loadBoard(reset){
       const startIdx = boardPosts.length;
       boardPosts = boardPosts.concat(newPosts);
       _boardOffset += newPosts.length;
+      if(isReset) _markLoad('board:' + boardFilter);
       if(reset === false) renderBoardAppend(startIdx, newPosts);
       else renderBoard();
       tryDeepLinkAfterRender();
@@ -2568,7 +2594,14 @@ function doSearch(){
 /// 통계 탭 진입 시: 최신 데이터 로드 후 렌더링
 let _teacherCommentMap = {}; // { 일기ID: [{teacher,text,time}] }
 
-function loadAndRenderStat(cb){
+function loadAndRenderStat(cb, force){
+  if(!force && myEntries.length && _freshLoad('stat', LOAD_TTL_MED)){
+    renderStreakStat();
+    renderStat(curStatPeriod);
+    if(cb) cb();
+    tryDeepLinkAfterRender();
+    return;
+  }
   document.getElementById('stat-mood-card').innerHTML='<div class="no-entry">불러오는 중...</div>';
   document.getElementById('stat-cal-card').innerHTML='<div class="no-entry">불러오는 중...</div>';
   // getStudentDashboard 로 한번에 로드 (일기 + 선생님 댓글 + 게시판 댓글 + timeHM)
@@ -2578,6 +2611,8 @@ function loadAndRenderStat(cb){
         // 오래된 순(timestamp 오름차순) 정렬 보장
         myEntries = (data.entries || []).sort((a,b) => (a.timestamp||0)-(b.timestamp||0));
         _teacherCommentMap = data.teacherCommentMap || {};
+        _markLoad('stat');
+        _markLoad('myEntries');
       }
       renderStreakStat();
       renderStat(curStatPeriod);
@@ -2911,6 +2946,7 @@ function loadStudentList(){
         seen[n] = true;
         return true;
       });
+      if(!seen['담임']) others.unshift('담임');
       sel.innerHTML = '<option value="">-- 친구/담임 선택 --</option>' +
         (others.length ? others.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('') : '<option value="" disabled>선택할 사람이 없어요</option>');
     })
@@ -2949,7 +2985,8 @@ function sendPraiseMsg(){
         m.textContent = to + '에게 칭찬을 보냈어요';
         m.style.display='block';
         setTimeout(()=>m.style.display='none',2500);
-        loadPraise();
+        _clearLoad('praise');
+        loadPraise(true);
       } else {
         alert(res.msg);
       }
@@ -2958,10 +2995,15 @@ function sendPraiseMsg(){
     .sendPraise(currentUser.name, to, msg, anonymous);
 }
 
-function loadPraise(){
+function loadPraise(force){
+  if(!force && praiseData && _freshLoad('praise', LOAD_TTL_FAST)){
+    renderPraise();
+    return;
+  }
   google.script.run
     .withSuccessHandler(function(data){
       praiseData=data;
+      _markLoad('praise');
       renderPraise();
     })
     .withFailureHandler(console.error)
@@ -3057,11 +3099,14 @@ function switchTeacherSubTab(tabId){
 let dashPeriod  = 'today';
 let trendPeriod = 'week';
 function loadDashboard(){
-  // 피드는 기존 loadFeed 함수가 별도 데이터 소스(최근 일기)를 사용하므로 병렬 로드
+  // 피드를 먼저 띄우고, 무거운 통계/검열 호출은 살짝 뒤로 미룬다.
   loadFeed();
-  _loadDashboardBundleOnly();
+  if(_freshLoad('dashBundle', LOAD_TTL_FAST)) return;
+  clearTimeout(window._dashBundleTimer);
+  window._dashBundleTimer = setTimeout(_loadDashboardBundleOnly, 250);
 }
 function _loadDashboardBundleOnly(){
+  _markLoad('dashBundle');
   // 안정판: 서버에 실제로 있는 함수들을 각각 호출한다.
   // getTeacherDashboardBundle 서버 함수가 없어도 교사 대시보드가 동작한다.
   const token = _getToken();
@@ -3334,8 +3379,13 @@ function deletePraiseMod(praiseId){
   });
 }
 
-function loadFeed(reset){
+function loadFeed(reset, force){
   const isReset = reset !== false;
+  if(isReset && !force && feedEntries.length && _freshLoad('feed', LOAD_TTL_FAST)){
+    renderFeed();
+    tryDeepLinkAfterRender();
+    return;
+  }
   if(_feedLoading) return;
   _feedLoading = true;
   if(isReset){
@@ -3358,6 +3408,7 @@ function loadFeed(reset){
       if(isReset){
         feedEntries = newRows;
         _feedOffset = newRows.length;
+        _markLoad('feed');
         renderFeed();
       } else {
         feedEntries = feedEntries.concat(newRows);
@@ -3367,7 +3418,7 @@ function loadFeed(reset){
       tryDeepLinkAfterRender();
     })
     .withFailureHandler(function(e){ _feedLoading = false; console.error(e); })
-    .getRecentEntries(_getToken(), FEED_PAGE_SIZE, pageOffset);
+    .getRecentEntries(_getToken(), FEED_PAGE_SIZE + 1, pageOffset);
 }
 
 function loadMoreFeed(){
