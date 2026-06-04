@@ -1046,8 +1046,12 @@ function saveQuickDiary(){
 function avatarBg(name){
   const colors=['#F2F2F2','#EDEDED','#E4E4E4','#DDDDDD','#D5D5D5'];
   const fg     =['#111','#111','#111','#111','#111'];
-  const i = (name.charCodeAt(0)||0) % colors.length;
+  const i = (String(name||'').charCodeAt(0)||0) % colors.length;
   return { bg: colors[i], fg: fg[i] };
+}
+function nameInitials(name){
+  const s = String(name || '').trim().replace(/\s+/g, '');
+  return s.length <= 2 ? s : s.slice(-2);
 }
 function updateClock(){
   const n=new Date();
@@ -1094,7 +1098,7 @@ function _applyLoginSuccess(res){
   if(res.token){ try{ localStorage.setItem('okgu_token', res.token); }catch(e){} }
   document.getElementById('login-screen').style.display='none';
   document.getElementById('main-app').style.display='block';
-  document.getElementById('user-av').textContent = res.name.substring(0,2);
+  document.getElementById('user-av').textContent = nameInitials(res.name);
   document.getElementById('class-label').textContent = res.cls||'옥구초 6학년';
   _pendingDeepLink = parseDeepLinkTarget();
   afterLogin();
@@ -1420,6 +1424,7 @@ function afterLogin(){
   setTimeout(refreshNotifications, 1200);
   if(window._notifPoller) clearInterval(window._notifPoller);
   window._notifPoller = setInterval(refreshNotifications, 60 * 1000);
+  setupInfiniteScroll();
 }
 
 // ========================
@@ -2230,7 +2235,7 @@ function loadBoard(reset){
       console.error(e);
       document.getElementById('board-list').innerHTML='<div class="no-entry">게시판을 불러오지 못했어요</div>';
     })
-    .getBoard(boardFilter, currentUser.name);
+    .getBoard(boardFilter, currentUser.name, BOARD_PAGE_SIZE, _boardOffset);
 }
 function loadMoreBoard(){
   if(!_boardHasMore || _boardLoading) return;
@@ -2310,7 +2315,7 @@ function renderBoardPost(p, idx){
     return `<div class="board-post" id="bpost-${idx}" data-post-id="${esc(p.id)}">
       <div class="board-head">
         <div class="board-author">
-          <div class="board-av" style="background:${av.bg};color:${av.fg}">${esc(p.author.substring(0,2))}</div>
+          <div class="board-av" style="background:${av.bg};color:${av.fg}">${esc(nameInitials(p.author))}</div>
           <div><div class="board-name">${esc(p.author)}</div><div class="board-date">${esc(p.date)}${timeDisp}</div></div>
         </div>
         <div style="display:flex;align-items:center;gap:5px;">
@@ -2890,19 +2895,31 @@ function renderStreakStat(){
 function loadStudentList(){
   if(_studentListLoaded || _studentListLoading) return;
   _studentListLoading = true;
+  const sel = document.getElementById('praise-to');
+  if(sel) sel.innerHTML = '<option value="">불러오는 중...</option>';
   google.script.run
     .withSuccessHandler(function(list){
       _studentListLoading = false;
       _studentListLoaded = true;
-      studentList = list||[];
+      studentList = (list || []).map(n => String(n || '').trim()).filter(Boolean);
       const sel = document.getElementById('praise-to');
       if(!sel) return;
-      // 현재 사용자 제외한 친구 목록으로 옵션 채우기
-      const others = studentList.filter(n => n !== (currentUser&&currentUser.name));
-      sel.innerHTML = '<option value="">-- 친구 선택 --</option>' +
-        others.map(n=>`<option value="${n}">${n}</option>`).join('');
+      const me = currentUser && currentUser.name;
+      const seen = {};
+      const others = studentList.filter(function(n){
+        if(!n || n === me || seen[n]) return false;
+        seen[n] = true;
+        return true;
+      });
+      sel.innerHTML = '<option value="">-- 친구/담임 선택 --</option>' +
+        (others.length ? others.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('') : '<option value="" disabled>선택할 사람이 없어요</option>');
     })
-    .withFailureHandler(function(e){ _studentListLoading = false; console.error(e); })
+    .withFailureHandler(function(e){
+      _studentListLoading = false;
+      const sel = document.getElementById('praise-to');
+      if(sel) sel.innerHTML = '<option value="">명단을 불러오지 못했어요</option>';
+      console.error(e);
+    })
     .getStudents();
 }
 
@@ -2991,7 +3008,7 @@ function renderPraise(){
       }
     }
     return `<div class="pitem" style="${itemOpacity}">
-      <div class="pav2" style="background:${av.bg};color:${av.fg}">${name.substring(0,2)}</div>
+      <div class="pav2" style="background:${av.bg};color:${av.fg}">${esc(nameInitials(name))}</div>
       <div style="flex:1;min-width:0;">
         <div class="pfrom">${praiseFilter==='received'?'from':'to'}: <b>${esc(name)}</b>${isNew?'<span class="new-badge">NEW</span>':''}${statusBadge}${anonBadge}</div>
         <div class="pmsg">${esc(p.msg)}</div>
@@ -3332,12 +3349,11 @@ function loadFeed(reset){
   }
   const pageOffset = isReset ? 0 : _feedOffset;
   google.script.run
-    .withSuccessHandler(function(entries){
+    .withSuccessHandler(function(res){
       _feedLoading = false;
-      const rows = entries || [];
-      const newRows = rows.slice(0, FEED_PAGE_SIZE);
-      // 기존 서버는 offset을 지원하지 않으므로 안정판에서는 피드 더보기를 끈다.
-      _feedHasMore = false;
+      const rows = Array.isArray(res) ? res : ((res && res.entries) ? res.entries : []);
+      const newRows = Array.isArray(res) ? rows.slice(0, FEED_PAGE_SIZE) : rows;
+      _feedHasMore = Array.isArray(res) ? rows.length > FEED_PAGE_SIZE : !!(res && res.hasMore);
       const startIdx = feedEntries.length;
       if(isReset){
         feedEntries = newRows;
@@ -3351,11 +3367,33 @@ function loadFeed(reset){
       tryDeepLinkAfterRender();
     })
     .withFailureHandler(function(e){ _feedLoading = false; console.error(e); })
-    .getRecentEntries(_getToken(), FEED_PAGE_SIZE + 1);
+    .getRecentEntries(_getToken(), FEED_PAGE_SIZE, pageOffset);
 }
 
 function loadMoreFeed(){
+  if(!_feedHasMore || _feedLoading) return;
   loadFeed(false);
+}
+
+function setupInfiniteScroll(){
+  if(window._okguInfiniteScrollReady) return;
+  window._okguInfiniteScrollReady = true;
+  function nearBottom(el){ return el && (el.scrollTop + el.clientHeight >= el.scrollHeight - 180); }
+  const boardScr = document.getElementById('scr-board');
+  if(boardScr){
+    boardScr.addEventListener('scroll', function(){
+      if(!boardScr.classList.contains('active')) return;
+      if(nearBottom(boardScr)) loadMoreBoard();
+    }, { passive:true });
+  }
+  const dashScr = document.getElementById('scr-dash');
+  if(dashScr){
+    dashScr.addEventListener('scroll', function(){
+      if(!dashScr.classList.contains('active')) return;
+      if(_currentTeacherSubTab !== 'feed') return;
+      if(nearBottom(dashScr)) loadMoreFeed();
+    }, { passive:true });
+  }
 }
 
 function renderFeedMoreButton(){
@@ -3394,7 +3432,21 @@ function renderFeedCard(e, idx){
     const photos = renderDiaryPhotos(e.photos);
     const entryIdJs = escJs(e.id);
 
-    const existingComments = (e.teacherComments||[]).slice().sort((a,b)=>(a.timestamp||0)-(b.timestamp||0)).map(c=>{
+    const allFeedComments = (e.teacherComments||[]).slice().sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
+    const feedById = {};
+    const feedChildren = {};
+    const feedRoots = [];
+    allFeedComments.forEach(c => { if(c && c.id) feedById[String(c.id)] = c; });
+    allFeedComments.forEach(c => {
+      const parentId = String((c && c.parentId) || '');
+      if(parentId && feedById[parentId]){
+        if(!feedChildren[parentId]) feedChildren[parentId] = [];
+        feedChildren[parentId].push(c);
+      } else {
+        feedRoots.push(c);
+      }
+    });
+    function renderFeedComment(c, depth){
       const cIdJs = escJs(c.id);
       const role = String(c.role||'선생님').trim();
       const isTeacher = role !== '학생';
@@ -3402,18 +3454,20 @@ function renderFeedCard(e, idx){
       const displayName = isTeacher ? `${esc(c.teacher)} 선생님` : esc(c.teacher);
       const isMineF = currentUser && currentUser.role === '선생님' && c.teacher === currentUser.name && isTeacher;
       const fHM = c.timeHM ? ` · ${c.timeHM}` : '';
-      const replyStyle = isStudentReply ? ' style="margin-left:24px;border-left:2px solid #ddd;padding-left:8px;"' : '';
+      const indent = Math.min(depth, 4) * 18;
+      const replyStyle = depth > 0 || isStudentReply ? ` style="margin-left:${indent}px;border-left:2px solid #ddd;padding-left:8px;"` : '';
       const fBtns = isMineF ? `<span style="margin-left:auto;display:flex;gap:3px;flex-shrink:0;">
         <button onclick="editFeedTc('${cIdJs}')" style="font-size:9px;padding:1px 6px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;color:var(--text3);">수정</button>
         <button onclick="deleteFeedTc('${cIdJs}',${idx})" style="font-size:9px;padding:1px 6px;border:1px solid #CFCFCF;border-radius:4px;background:#fff;cursor:pointer;color:#111;">삭제</button>
       </span>` : '';
-      return `<div class="teacher-comment-item" id="ftc-${c.id}"${replyStyle}>
+      const childHtml = (feedChildren[String(c.id)] || []).map(child => renderFeedComment(child, depth + 1)).join('');
+      return `<div class="teacher-comment-item" id="ftc-${esc(c.id)}"${replyStyle}>
         <div class="tc-av">${isTeacher?'선':'학'}</div>
         <div class="tc-bubble">
           <div style="display:flex;align-items:center;flex-wrap:nowrap;"><span class="tc-name">${displayName}<span style="font-size:9px;color:var(--text3);">${fHM}</span></span>${fBtns}</div>
-          <div class="tc-text" id="ftctext-${c.id}">${isStudentReply ? '<span style="font-size:9px;color:var(--text3);font-weight:600;margin-right:4px;">답글</span>' : ''}${esc(c.text)}</div>
-          <div id="ftcedit-${c.id}" style="display:none;">
-            <input style="width:100%;padding:4px 7px;font-size:12px;border:1px solid var(--green);border-radius:6px;margin-top:2px;" id="ftcinput-${c.id}" value="${esc(c.text)}">
+          <div class="tc-text" id="ftctext-${esc(c.id)}">${isStudentReply ? '<span style="font-size:9px;color:var(--text3);font-weight:600;margin-right:4px;">답글</span>' : ''}${esc(c.text)}</div>
+          <div id="ftcedit-${esc(c.id)}" style="display:none;">
+            <input style="width:100%;padding:4px 7px;font-size:12px;border:1px solid var(--green);border-radius:6px;margin-top:2px;" id="ftcinput-${esc(c.id)}" value="${esc(c.text)}">
             <div style="display:flex;gap:4px;margin-top:3px;">
               <button onclick="submitEditFeedTc('${cIdJs}')" style="font-size:10px;padding:2px 8px;border:none;border-radius:5px;background:var(--green);color:#fff;cursor:pointer;">저장</button>
               <button onclick="cancelEditFeedTc('${cIdJs}')" style="font-size:10px;padding:2px 8px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;">취소</button>
@@ -3421,13 +3475,14 @@ function renderFeedCard(e, idx){
           </div>
           <div class="tc-time">${c.time||''}</div>
         </div>
-      </div>`;
-    }).join('');
+      </div>${childHtml}`;
+    }
+    const existingComments = feedRoots.map(c => renderFeedComment(c, 0)).join('');
     const commentCount = (e.teacherComments||[]).length;
 
     return `<div class="feed-card" data-diary-id="${esc(e.id)}">
       <div class="feed-head">
-        <div class="feed-av" style="background:${av.bg};color:${av.fg}">${esc(e.studentName.substring(0,2))}</div>
+        <div class="feed-av" style="background:${av.bg};color:${av.fg}">${esc(nameInitials(e.studentName))}</div>
         <div>
           <div class="feed-name">${esc(e.studentName)}</div>
           <div style="font-size:10px;color:var(--text3);">${normDate(e.date||'')}${e.timeHM?' · '+e.timeHM:e.savedTime?' · '+e.savedTime:''}</div>
@@ -3445,7 +3500,7 @@ function renderFeedCard(e, idx){
         </button>
         <button onclick="deleteFeedEntry('${entryIdJs}',${idx})" style="font-size:11px;padding:3px 10px;border:1px solid #CFCFCF;border-radius:6px;background:#fff;color:#111;cursor:pointer;margin-left:auto;">🗑 삭제</button>
       </div>
-      <div id="fcmt-${idx}" style="display:none;margin-top:8px;">
+      <div id="fcmt-${idx}" style="display:${commentCount>0?'block':'none'};margin-top:8px;">
         <div id="ftc-list-${idx}">${existingComments}</div>
         <div class="tc-input-row">
           <input class="tc-input" id="ftc-input-${idx}" placeholder="선생님 댓글..."
@@ -3589,7 +3644,7 @@ function renderStudentList(){
     const flagBtnLbl = flag.counsel ? '해제' : '상담';
     return '<div class="student-card">'+
       '<div class="student-card-head">'+
-        '<div class="student-card-av" style="background:'+av.bg+';color:'+av.fg+'">'+esc(s.name.substring(0,2))+'</div>'+
+        '<div class="student-card-av" style="background:'+av.bg+';color:'+av.fg+'">'+esc(nameInitials(s.name))+'</div>'+
         '<div style="flex:1;min-width:0;">'+
           '<div class="student-card-name">'+esc(s.name)+flagBadge+'</div>'+
           '<div class="student-card-sub">'+streakTxt+' · '+totalTxt+(moodTxt?' · '+moodTxt:'')+'</div>'+
@@ -3826,7 +3881,7 @@ function submitStatTcReply(diaryId, commentId){
       inp.disabled = false;
       alert('답글 전송 중 오류: '+e.message);
     })
-    .addStudentReplyToDiary(diaryId, currentUser.name, text);
+    .addStudentReplyToDiary(diaryId, currentUser.name, text, commentId);
 }
 
 // ── 모달(교사 학생일기) 댓글 수정/삭제 ──
