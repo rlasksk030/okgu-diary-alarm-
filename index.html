@@ -881,6 +881,7 @@ let _studentListLoaded = false;
 let _studentListLoading = false;
 let _saveInProgress = false;
 let _quickDiarySaving = false;
+let _pendingDeepLink = null;
 let _praiseSending = false;
 
 // ========================
@@ -1095,7 +1096,9 @@ function _applyLoginSuccess(res){
   document.getElementById('main-app').style.display='block';
   document.getElementById('user-av').textContent = res.name.substring(0,2);
   document.getElementById('class-label').textContent = res.cls||'옥구초 6학년';
+  _pendingDeepLink = parseDeepLinkTarget();
   afterLogin();
+  setTimeout(handlePendingDeepLink, 900);
 }
 
 // 페이지 로드 시 자동 로그인 시도 (토큰 있으면 서버 검증)
@@ -1447,11 +1450,46 @@ function goTo(id, title, sub, el){
 
 // ── 알림 배지 ──
 function refreshNotifications(){
-  // 안정판: 현재 서버의 getNotifications/markSeen 계약이 프론트와 달라 배지 호출은 비활성화.
-  // 일기 로드와 저장 흐름을 막지 않도록 조용히 건너뜀.
-  setBadge('badge-write', 0);
-  setBadge('badge-board', 0);
-  setBadge('badge-praise', 0);
+  if(!currentUser) { updateAppIconBadge(0); return; }
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(!res || res.success === false){
+        updateAppIconBadge(0);
+        return;
+      }
+      const items = Array.isArray(res.items) ? res.items : [];
+      const counts = { write:0, board:0, praise:0 };
+      items.forEach(function(item){
+        const ch = notificationChannel(item);
+        if(!ch) return;
+        const seen = Number(localStorage.getItem(notificationSeenKey(ch)) || 0);
+        const t = item.timeISO ? new Date(item.timeISO).getTime() : 0;
+        if(!seen || t > seen) counts[ch]++;
+      });
+      setBadge('badge-write', counts.write);
+      setBadge('badge-board', counts.board);
+      setBadge('badge-praise', counts.praise);
+      updateAppIconBadge(counts.write + counts.board + counts.praise);
+    })
+    .withFailureHandler(function(){ updateAppIconBadge(0); })
+    .getNotifications(currentUser.name, currentUser.role);
+}
+function notificationChannel(item){
+  if(!item) return '';
+  if(item.type === 'comment' || item.type === 'reply') return 'write';
+  if(item.type === 'board') return 'board';
+  if(item.type === 'praise') return 'praise';
+  return '';
+}
+function notificationSeenKey(channel){
+  return 'okgu_seen_' + (currentUser ? currentUser.name : 'guest') + '_' + channel;
+}
+function updateAppIconBadge(count){
+  count = Math.max(0, Number(count) || 0);
+  try{
+    if(count > 0 && navigator.setAppBadge) navigator.setAppBadge(count);
+    else if(count <= 0 && navigator.clearAppBadge) navigator.clearAppBadge();
+  }catch(e){}
 }
 function setBadge(id, count){
   const el = document.getElementById(id);
@@ -1463,8 +1501,99 @@ function setBadge(id, count){
     el.style.display = 'none';
   }
 }
+function normalizeNotificationChannel(channel){
+  if(channel === 'teacherComment' || channel === 'comment' || channel === 'reply') return 'write';
+  if(channel === 'board') return 'board';
+  if(channel === 'praise') return 'praise';
+  return channel || '';
+}
 function markChannelSeen(channel){
-  // 안정판: 서버에 markSeen 함수가 없으므로 no-op.
+  channel = normalizeNotificationChannel(channel);
+  if(!channel) return;
+  try{ localStorage.setItem(notificationSeenKey(channel), String(Date.now())); }catch(e){}
+  setBadge(channel === 'write' ? 'badge-write' : channel === 'board' ? 'badge-board' : 'badge-praise', 0);
+  refreshNotifications();
+}
+
+
+// ── 푸시/알림 딥링크 ──
+function parseDeepLinkTarget(){
+  try{
+    const params = new URL(location.href).searchParams;
+    const open = params.get('open') || '';
+    if(!open) return null;
+    return { open: open, id: params.get('id') || '', handled: false };
+  }catch(e){ return null; }
+}
+function navButtonFor(screen){
+  return Array.from(document.querySelectorAll('.ni')).find(function(n){
+    return (n.getAttribute('onclick') || '').indexOf("goTo('"+screen+"'") >= 0;
+  });
+}
+function handlePendingDeepLink(){
+  if(!_pendingDeepLink || _pendingDeepLink.handled || !currentUser) return;
+  const target = _pendingDeepLink;
+  if(target.open === 'praise'){
+    const btn = navButtonFor('praise');
+    if(btn) goTo('praise','칭찬함','',btn);
+    finishDeepLink();
+    return;
+  }
+  if(target.open === 'board'){
+    const btn = navButtonFor('board');
+    if(btn) goTo('board','공개 게시판','친구들과 나누는 이야기',btn);
+    return;
+  }
+  if(target.open === 'diary'){
+    if(currentUser.role === '선생님'){
+      const btn = navButtonFor('dash');
+      if(btn) goTo('dash','교사 대시보드','학급 현황',btn);
+      switchTeacherSubTab('feed');
+      const allTab = document.getElementById('ftab-all');
+      if(allTab) switchFeedTab(allTab, 'all');
+    } else {
+      const btn = navButtonFor('stat');
+      if(btn) goTo('stat','기분 통계','나의 감정 패턴',btn);
+      loadAndRenderStat();
+    }
+  }
+}
+function tryDeepLinkAfterRender(){
+  if(!_pendingDeepLink || _pendingDeepLink.handled) return;
+  const target = _pendingDeepLink;
+  if(target.open === 'board' && target.id){
+    const el = document.querySelector('[data-post-id="'+cssAttrEscape(target.id)+'"]');
+    if(el){ highlightTarget(el); finishDeepLink(); }
+    return;
+  }
+  if(target.open === 'diary' && target.id){
+    if(currentUser && currentUser.role === '선생님'){
+      const el = document.querySelector('[data-diary-id="'+cssAttrEscape(target.id)+'"]');
+      if(el){ highlightTarget(el); finishDeepLink(); }
+    } else {
+      const entry = (myEntries || []).find(function(e){ return String(e.id) === String(target.id); });
+      if(entry){
+        showStatDay(normDate(entry.date));
+        setTimeout(function(){
+          const el = document.querySelector('[data-diary-id="'+cssAttrEscape(target.id)+'"]');
+          if(el){ highlightTarget(el); finishDeepLink(); }
+        }, 80);
+      }
+    }
+  }
+}
+function cssAttrEscape(value){
+  return String(value || '').replace(/\\/g,'\\\\').replace(/"/g,'\\\"');
+}
+function highlightTarget(el){
+  try{ el.scrollIntoView({ behavior:'smooth', block:'center' }); }catch(e){ el.scrollIntoView(); }
+  el.style.outline = '2px solid #111';
+  el.style.outlineOffset = '3px';
+  setTimeout(function(){ el.style.outline=''; el.style.outlineOffset=''; }, 2600);
+}
+function finishDeepLink(){
+  if(_pendingDeepLink) _pendingDeepLink.handled = true;
+  try{ history.replaceState(null, '', location.origin + location.pathname); }catch(e){}
 }
 
 // ========================
@@ -2094,6 +2223,7 @@ function loadBoard(reset){
       _boardOffset += newPosts.length;
       if(reset === false) renderBoardAppend(startIdx, newPosts);
       else renderBoard();
+      tryDeepLinkAfterRender();
     })
     .withFailureHandler(function(e){
       _boardLoading = false;
@@ -2177,7 +2307,7 @@ function renderBoardPost(p, idx){
     };
     const comments = rootCmts.slice().sort(function(a,b){ return String(a.id) < String(b.id) ? -1 : 1; })
       .map(function(c){ return renderCmt(c, 0); }).join('');
-    return `<div class="board-post" id="bpost-${idx}">
+    return `<div class="board-post" id="bpost-${idx}" data-post-id="${esc(p.id)}">
       <div class="board-head">
         <div class="board-author">
           <div class="board-av" style="background:${av.bg};color:${av.fg}">${esc(p.author.substring(0,2))}</div>
@@ -2433,7 +2563,7 @@ function doSearch(){
 /// 통계 탭 진입 시: 최신 데이터 로드 후 렌더링
 let _teacherCommentMap = {}; // { 일기ID: [{teacher,text,time}] }
 
-function loadAndRenderStat(){
+function loadAndRenderStat(cb){
   document.getElementById('stat-mood-card').innerHTML='<div class="no-entry">불러오는 중...</div>';
   document.getElementById('stat-cal-card').innerHTML='<div class="no-entry">불러오는 중...</div>';
   // getStudentDashboard 로 한번에 로드 (일기 + 선생님 댓글 + 게시판 댓글 + timeHM)
@@ -2446,10 +2576,14 @@ function loadAndRenderStat(){
       }
       renderStreakStat();
       renderStat(curStatPeriod);
+      if(cb) cb();
+      tryDeepLinkAfterRender();
     })
     .withFailureHandler(function(){
       renderStreakStat();
       renderStat(curStatPeriod);
+      if(cb) cb();
+      tryDeepLinkAfterRender();
     })
     .getStudentDashboard(_getToken(), currentUser.name);
 }
@@ -2701,7 +2835,7 @@ function showStatDay(dateKey){
         : `<span style="font-size:9px;background:#F2F2F2;color:#111;border-radius:4px;padding:1px 5px;margin-left:4px;"><span style='display:inline-flex;vertical-align:-1px;'><svg viewBox="0 0 24 24" width="12" height="12" fill="none" style="vertical-align:-1px"><path d="M4 20 L4 16.5 L15.5 5 L19 8.5 L7.5 20 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span> 선생님공유</span>`;
     // JSON 직렬화 (onclick에서 사용) - HTML-safe
     const entryJsonAttr = esc(JSON.stringify(e));
-    return `<div class="card stat-entry-item">
+    return `<div class="card stat-entry-item" data-diary-id="${esc(e.id)}">
       <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;">
         <span style="font-size:20px;">${esc(e.moodEmoji||'')}</span>
         <div style="flex:1;">
@@ -3214,6 +3348,7 @@ function loadFeed(reset){
         _feedOffset += newRows.length;
         renderFeedAppend(startIdx, newRows);
       }
+      tryDeepLinkAfterRender();
     })
     .withFailureHandler(function(e){ _feedLoading = false; console.error(e); })
     .getRecentEntries(_getToken(), FEED_PAGE_SIZE + 1);
@@ -3239,7 +3374,7 @@ function switchFeedTab(el, tab){
 function feedMatchesTab(e){
   const todayStr = todayKey();
   if(feedTab==='today')  return normDate(e.date) === todayStr;
-  if(feedTab==='secret') return !!e.isSecret;
+  if(feedTab==='secret') return !!e.isSecret || !!e.isMeOnly;
   return true;
 }
 
@@ -3252,27 +3387,31 @@ function feedVisibleItems(rows, startIdx){
 function renderFeedCard(e, idx){
     const av   = avatarBg(e.studentName);
     let badges='';
-    if(e.isSecret) badges+=`<span class="diary-item-badge badge-secret">🔒 비밀</span>`;
+    if(e.isMeOnly) badges+=`<span class="diary-item-badge badge-secret">🔒 나만보기</span>`;
+    else if(e.isSecret) badges+=`<span class="diary-item-badge badge-secret">🔒 비밀</span>`;
     if(e.isPublic) badges+=`<span class="diary-item-badge badge-public">🌐 공개</span>`;
 
     const photos = renderDiaryPhotos(e.photos);
     const entryIdJs = escJs(e.id);
 
-    const existingComments = (e.teacherComments||[]).map(c=>{
+    const existingComments = (e.teacherComments||[]).slice().sort((a,b)=>(a.timestamp||0)-(b.timestamp||0)).map(c=>{
       const cIdJs = escJs(c.id);
-      const isTeacher = (c.role||'선생님')==='선생님';
+      const role = String(c.role||'선생님').trim();
+      const isTeacher = role !== '학생';
+      const isStudentReply = role === '학생';
       const displayName = isTeacher ? `${esc(c.teacher)} 선생님` : esc(c.teacher);
-      const isMineF = currentUser && c.teacher === currentUser.name;
+      const isMineF = currentUser && currentUser.role === '선생님' && c.teacher === currentUser.name && isTeacher;
       const fHM = c.timeHM ? ` · ${c.timeHM}` : '';
+      const replyStyle = isStudentReply ? ' style="margin-left:24px;border-left:2px solid #ddd;padding-left:8px;"' : '';
       const fBtns = isMineF ? `<span style="margin-left:auto;display:flex;gap:3px;flex-shrink:0;">
         <button onclick="editFeedTc('${cIdJs}')" style="font-size:9px;padding:1px 6px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;color:var(--text3);">수정</button>
         <button onclick="deleteFeedTc('${cIdJs}',${idx})" style="font-size:9px;padding:1px 6px;border:1px solid #CFCFCF;border-radius:4px;background:#fff;cursor:pointer;color:#111;">삭제</button>
       </span>` : '';
-      return `<div class="teacher-comment-item" id="ftc-${c.id}">
+      return `<div class="teacher-comment-item" id="ftc-${c.id}"${replyStyle}>
         <div class="tc-av">${isTeacher?'선':'학'}</div>
         <div class="tc-bubble">
           <div style="display:flex;align-items:center;flex-wrap:nowrap;"><span class="tc-name">${displayName}<span style="font-size:9px;color:var(--text3);">${fHM}</span></span>${fBtns}</div>
-          <div class="tc-text" id="ftctext-${c.id}">${esc(c.text)}</div>
+          <div class="tc-text" id="ftctext-${c.id}">${isStudentReply ? '<span style="font-size:9px;color:var(--text3);font-weight:600;margin-right:4px;">답글</span>' : ''}${esc(c.text)}</div>
           <div id="ftcedit-${c.id}" style="display:none;">
             <input style="width:100%;padding:4px 7px;font-size:12px;border:1px solid var(--green);border-radius:6px;margin-top:2px;" id="ftcinput-${c.id}" value="${esc(c.text)}">
             <div style="display:flex;gap:4px;margin-top:3px;">
@@ -3286,7 +3425,7 @@ function renderFeedCard(e, idx){
     }).join('');
     const commentCount = (e.teacherComments||[]).length;
 
-    return `<div class="feed-card">
+    return `<div class="feed-card" data-diary-id="${esc(e.id)}">
       <div class="feed-head">
         <div class="feed-av" style="background:${av.bg};color:${av.fg}">${esc(e.studentName.substring(0,2))}</div>
         <div>

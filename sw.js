@@ -15,7 +15,8 @@ self.addEventListener('push', (event) => {
     body: '새 알림이 있어요.',
     url: DIARY_URL,
     tag: 'okgu-diary',
-    icon: 'okgu_icon.png'
+    icon: 'okgu_icon.png',
+    badgeCount: 1
   };
 
   try {
@@ -26,7 +27,8 @@ self.addEventListener('push', (event) => {
     } catch (_) {}
   }
 
-  event.waitUntil(
+  const badgeCount = Math.max(1, Number(data.badgeCount || data.unreadCount || 1) || 1);
+  const tasks = [
     self.registration.showNotification(data.title || 'OKGU DIARY', {
       body: data.body || '새 알림이 있어요.',
       icon: data.icon || 'okgu_icon.png',
@@ -35,15 +37,23 @@ self.addEventListener('push', (event) => {
       renotify: true,
       data: { url: data.url || DIARY_URL }
     })
-  );
+  ];
+  if (self.registration.setAppBadge) {
+    tasks.push(self.registration.setAppBadge(badgeCount).catch(() => {}));
+  }
+  event.waitUntil(Promise.all(tasks));
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const url = (event.notification.data && event.notification.data.url) || DIARY_URL;
 
+  const clearBadge = self.registration.clearAppBadge
+    ? self.registration.clearAppBadge().catch(() => {})
+    : Promise.resolve();
+
   event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+    clearBadge.then(() => self.clients.matchAll({ type: 'window', includeUncontrolled: true })).then((clients) => {
       for (const client of clients) {
         if ('focus' in client) {
           client.focus();
