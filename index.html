@@ -1098,7 +1098,8 @@ function doLogin(){
     })
     .withFailureHandler(function(e){
       btn.innerHTML='입장하기'; btn.disabled=false;
-      err.textContent='오류가 발생했어요. 다시 시도해봐';
+      const detail = e && e.message ? String(e.message) : '';
+      err.textContent = detail ? ('오류: ' + detail) : '오류가 발생했어요. 다시 시도해봐';
       console.error(e);
     })
     .login(name, pin, remember);
