@@ -1223,7 +1223,7 @@ function refreshMyPushStatus(){
 }
 async function _getPushRegistration(){
   if(!_pushSupported()) throw new Error('이 기기는 Web Push를 지원하지 않아요.');
-  return await navigator.serviceWorker.register('sw.js?v=20260604-push');
+  return await navigator.serviceWorker.register('sw.js?v=20260605-deeplink');
 }
 async function enableRealPush(){
   closeAvMenu();
@@ -1691,13 +1691,27 @@ function markChannelSeen(channel){
 
 
 // ── 푸시/알림 딥링크 ──
-function parseDeepLinkTarget(){
+function parseDeepLinkTarget(url){
   try{
-    const params = new URL(location.href).searchParams;
+    const params = new URL(url || location.href, location.href).searchParams;
     const open = params.get('open') || '';
     if(!open) return null;
     return { open: open, id: params.get('id') || '', cid: params.get('cid') || '', handled: false };
   }catch(e){ return null; }
+}
+function applyDeepLinkUrl(url){
+  const target = parseDeepLinkTarget(url);
+  if(!target) return;
+  _pendingDeepLink = target;
+  _deepLinkLoadAttempts = 0;
+  handlePendingDeepLink();
+  setTimeout(tryDeepLinkAfterRender, 180);
+}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.addEventListener('message', function(event){
+    const data = event && event.data ? event.data : {};
+    if(data.type === 'OKGU_DEEP_LINK' && data.url) applyDeepLinkUrl(data.url);
+  });
 }
 function navButtonFor(screen){
   return Array.from(document.querySelectorAll('.ni')).find(function(n){

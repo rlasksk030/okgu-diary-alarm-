@@ -56,6 +56,9 @@ self.addEventListener('notificationclick', (event) => {
     clearBadge.then(() => self.clients.matchAll({ type: 'window', includeUncontrolled: true })).then((clients) => {
       for (const client of clients) {
         if ('focus' in client) {
+          try {
+            client.postMessage({ type: 'OKGU_DEEP_LINK', url });
+          } catch (_) {}
           client.focus();
           if ('navigate' in client) return client.navigate(url);
           return client;
