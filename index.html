@@ -1529,7 +1529,7 @@ function parseDeepLinkTarget(){
     const params = new URL(location.href).searchParams;
     const open = params.get('open') || '';
     if(!open) return null;
-    return { open: open, id: params.get('id') || '', handled: false };
+    return { open: open, id: params.get('id') || '', cid: params.get('cid') || '', handled: false };
   }catch(e){ return null; }
 }
 function navButtonFor(screen){
@@ -1570,7 +1570,14 @@ function tryDeepLinkAfterRender(){
   const target = _pendingDeepLink;
   if(target.open === 'board' && target.id){
     const el = document.querySelector('[data-post-id="'+cssAttrEscape(target.id)+'"]');
-    if(el){ highlightTarget(el); finishDeepLink(); _deepLinkLoadAttempts = 0; }
+    if(el){
+      const area = el.querySelector('.comment-area');
+      if(area) area.style.display = 'block';
+      const comment = target.cid ? document.getElementById('cmtitem-'+target.cid) : null;
+      highlightTarget(comment || el);
+      finishDeepLink();
+      _deepLinkLoadAttempts = 0;
+    }
     else if(_boardHasMore && !_boardLoading && _deepLinkLoadAttempts < 12){
       _deepLinkLoadAttempts++;
       loadMoreBoard();
@@ -1580,7 +1587,14 @@ function tryDeepLinkAfterRender(){
   if(target.open === 'diary' && target.id){
     if(currentUser && currentUser.role === '선생님'){
       const el = document.querySelector('[data-diary-id="'+cssAttrEscape(target.id)+'"]');
-      if(el){ highlightTarget(el); finishDeepLink(); _deepLinkLoadAttempts = 0; }
+      if(el){
+        const comment = target.cid
+          ? (document.getElementById('ftc-'+target.cid) || document.getElementById('mtc-'+target.cid))
+          : null;
+        highlightTarget(comment || el);
+        finishDeepLink();
+        _deepLinkLoadAttempts = 0;
+      }
       else if(_feedHasMore && !_feedLoading && _deepLinkLoadAttempts < 12){
         _deepLinkLoadAttempts++;
         loadMoreFeed();
@@ -1591,7 +1605,8 @@ function tryDeepLinkAfterRender(){
         showStatDay(normDate(entry.date));
         setTimeout(function(){
           const el = document.querySelector('[data-diary-id="'+cssAttrEscape(target.id)+'"]');
-          if(el){ highlightTarget(el); finishDeepLink(); _deepLinkLoadAttempts = 0; }
+          const comment = target.cid ? document.getElementById('stc-'+target.cid) : null;
+          if(comment || el){ highlightTarget(comment || el); finishDeepLink(); _deepLinkLoadAttempts = 0; }
         }, 80);
       }
     }
