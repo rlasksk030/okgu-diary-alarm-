@@ -799,7 +799,15 @@ function moodSvg(emoji){ return MOOD_SVG_MAP[emoji] || ''; }
         <div class="dash-header">
           <span class="dash-title" style="display:inline-flex;align-items:center;gap:5px;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none"><line x1="6" y1="3.5" x2="6" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M6 4 L17 4 L14.5 8 L17 12 L6 12 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="currentColor" fill-opacity="0.08"/></svg> 상담 필요 학생</span>
         </div>
-        <div id="ds-counsel-list" style="font-size:var(--fs-sub);color:var(--text3);">불러오는 중...</div>
+      <div id="ds-counsel-list" style="font-size:var(--fs-sub);color:var(--text3);">불러오는 중...</div>
+      </div>
+      <!-- 알림 등록 현황 -->
+      <div class="card" id="ds-push-card" style="margin-bottom:12px;">
+        <div class="dash-header">
+          <span class="dash-title" style="display:inline-flex;align-items:center;gap:5px;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none"><path d="M5 11 A7 7 0 0 1 19 11 V17 L21 19 H3 L5 17 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19 Q12 21 14 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> 알림 등록 현황</span>
+          <button onclick="loadPushStatus()" style="display:inline-flex;align-items:center;gap:3px;font-size:var(--fs-tiny);padding:3px 8px;border:1px solid var(--border2);border-radius:5px;background:#fff;cursor:pointer;font-family:var(--font);color:var(--text2);">새로고침</button>
+        </div>
+        <div id="ds-push-list" style="font-size:var(--fs-sub);color:var(--text3);">불러오는 중...</div>
       </div>
       <!-- 학생 목록 -->
       <div class="slabel">학생별 현황</div>
@@ -884,6 +892,7 @@ let _quickDiarySaving = false;
 let _pendingDeepLink = null;
 let _deepLinkLoadAttempts = 0;
 let _praiseSending = false;
+let _pushPromptDismissedThisSession = false;
 
 // ========================
 //  유틸
@@ -1197,6 +1206,8 @@ async function enableRealPush(){
       .withSuccessHandler(function(res){
         if(_handleAuthErr(res)) return;
         if(res && res.success === false){ alert(res.msg || '푸시 등록 실패'); return; }
+        try{ localStorage.setItem(_pushPromptDismissKey(), 'on'); }catch(e){}
+        renderPushSetupPrompt();
         alert('진짜 푸시 알림이 켜졌어요. 이제 테스트를 눌러 확인해보세요.');
       })
       .withFailureHandler(function(e){ alert('푸시 등록 오류: ' + e.message); })
@@ -1204,6 +1215,73 @@ async function enableRealPush(){
   }catch(e){
     alert('푸시 등록 중 오류: ' + e.message);
   }
+}
+async function autoRegisterRealPush(){
+  if(!currentUser || !_pushSupported()) return;
+  if(Notification.permission !== 'granted') return;
+  try{
+    const reg = await _getPushRegistration();
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(PUSH_PUBLIC_KEY)
+      });
+    }
+    google.script.run
+      .withSuccessHandler(function(res){
+        if(_handleAuthErr(res)) return;
+        if(res && res.success !== false){
+          try{ localStorage.setItem(_pushPromptDismissKey(), 'on'); }catch(e){}
+          renderPushSetupPrompt();
+        }
+      })
+      .withFailureHandler(function(e){ console.error('push auto register:', e); })
+      .savePushSubscription(_getToken(), currentUser.name, currentUser.role, JSON.stringify(sub));
+  }catch(e){
+    console.error('push auto register:', e);
+  }
+}
+function _pushPromptDismissKey(){
+  return 'okgu_push_prompt_seen_' + (currentUser ? currentUser.name : 'guest');
+}
+function dismissPushSetupPrompt(){
+  _pushPromptDismissedThisSession = true;
+  renderPushSetupPrompt();
+}
+function showPushSetupPromptPopup(){
+  if(_pushPromptDismissedThisSession) return;
+  if(!currentUser || !_pushSupported()) return;
+  if(Notification.permission === 'granted') return;
+  customConfirm('댓글·칭찬·선생님 알림을 받으려면 알림을 켜야 해요.\n지금 알림을 켤까요?', function(){
+    enableRealPush();
+  });
+}
+function renderPushSetupPrompt(){
+  const old = document.getElementById('push-setup-card');
+  if(old) old.remove();
+  if(!currentUser || !_pushSupported()) return;
+  if(Notification.permission === 'granted') return;
+  if(_pushPromptDismissedThisSession) return;
+  const host = document.getElementById('scr-write');
+  if(!host) return;
+  const card = document.createElement('div');
+  card.id = 'push-setup-card';
+  card.className = 'card';
+  card.style.cssText = 'border:1px solid #111;margin-bottom:10px;';
+  card.innerHTML =
+    '<div style="display:flex;align-items:center;gap:9px;">' +
+      '<div style="width:30px;height:30px;border-radius:50%;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+        '<svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M5 11 A7 7 0 0 1 19 11 V17 L21 19 H3 L5 17 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19 Q12 21 14 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>' +
+      '</div>' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-size:13px;font-weight:700;color:var(--text);">알림을 켜 주세요</div>' +
+        '<div style="font-size:11px;color:var(--text3);margin-top:2px;">댓글·칭찬·선생님 소식을 바로 받을 수 있어요.</div>' +
+      '</div>' +
+      '<button onclick="enableRealPush()" style="font-size:11px;padding:6px 10px;border:none;border-radius:99px;background:#111;color:#fff;font-weight:700;cursor:pointer;">켜기</button>' +
+      '<button onclick="dismissPushSetupPrompt()" style="font-size:11px;padding:6px 8px;border:1px solid var(--border);border-radius:99px;background:#fff;color:var(--text3);cursor:pointer;">나중에</button>' +
+    '</div>';
+  host.insertBefore(card, host.firstChild);
 }
 function testRealPush(){
   closeAvMenu();
@@ -1422,6 +1500,11 @@ function afterLogin(){
   // 알림 상태 복원 + 스케줄 등록
   _updateNotifUI();
   _scheduleDiaryNotif();
+  setTimeout(function(){
+    autoRegisterRealPush();
+    renderPushSetupPrompt();
+    showPushSetupPromptPopup();
+  }, 900);
   // 알림 배지 — 첫 화면 렌더링을 막지 않도록 살짝 늦게 시작
   setTimeout(refreshNotifications, 1200);
   if(window._notifPoller) clearInterval(window._notifPoller);
@@ -3057,6 +3140,8 @@ let classOverview   = [];
 let studentFilter   = 'all';
 let feedEntries     = [];
 let feedTab         = 'all';
+let pushStatusMap   = {};
+let pushStatusItems = [];
 const FEED_PAGE_SIZE = 12;
 let _feedLimit = FEED_PAGE_SIZE;
 let _feedOffset = 0;
@@ -3150,6 +3235,8 @@ function _loadDashboardBundleOnly(){
     })
     .withFailureHandler(function(e){ praiseModItems = []; renderPraiseMod(); console.error('praise moderation err:', e); })
     .listAllPraiseForTeacher(token);
+
+  loadPushStatus();
 }
 
 // ── 상담 필요 태그 (SVG 플래그 톤) ──
@@ -3175,6 +3262,42 @@ function renderCounselList(){
       '</div>'+memoHtml+
     '</div>';
   }).join('');
+}
+function loadPushStatus(){
+  if(!currentUser || currentUser.role !== '선생님') return;
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(_handleAuthErr(res)) return;
+      pushStatusItems = (res && res.success && res.items) ? res.items : [];
+      pushStatusMap = {};
+      pushStatusItems.forEach(function(item){ pushStatusMap[item.name] = !!item.enabled; });
+      renderPushStatusPanel(res || {});
+      renderStudentList();
+    })
+    .withFailureHandler(function(e){
+      console.error('push status err:', e);
+      const el = document.getElementById('ds-push-list');
+      if(el) el.innerHTML = '알림 현황을 불러오지 못했어요';
+    })
+    .getPushSubscriptionStatus(_getToken());
+}
+function renderPushStatusPanel(res){
+  const el = document.getElementById('ds-push-list');
+  if(!el) return;
+  const total = Number(res.total || pushStatusItems.length || 0);
+  const enabled = Number(res.enabled || pushStatusItems.filter(function(x){ return x.enabled; }).length || 0);
+  const missing = pushStatusItems.filter(function(x){ return !x.enabled; });
+  if(!total){ el.innerHTML = '학생 목록이 없어요'; return; }
+  const missHtml = missing.length
+    ? '<div style="margin-top:7px;display:flex;gap:4px;flex-wrap:wrap;">' + missing.map(function(x){
+        return '<span style="font-size:10px;border:1px solid #CFCFCF;border-radius:99px;padding:2px 7px;background:#fff;color:#111;">'+esc(x.name)+'</span>';
+      }).join('') + '</div>'
+    : '<div style="margin-top:6px;color:#111;font-weight:600;">모든 학생이 알림 등록됨</div>';
+  el.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">' +
+      '<span style="color:var(--text);font-weight:700;">등록 '+enabled+' / '+total+'</span>' +
+      '<span style="color:'+(missing.length ? '#111' : 'var(--text3)')+';">미등록 '+missing.length+'명</span>' +
+    '</div>' + missHtml;
 }
 function toggleCounselFlag(studentName, need){
   let memo = '';
@@ -3679,6 +3802,12 @@ function renderStudentList(){
     const flagBadge = flag.counsel
       ? ' <span style="font-size:var(--fs-tiny);background:#111;color:#fff;border-radius:4px;padding:1px 5px;display:inline-flex;align-items:center;gap:3px;vertical-align:middle;"><svg viewBox="0 0 24 24" width="8" height="8" fill="none"><line x1="6" y1="3.5" x2="6" y2="21" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M6 4 L17 4 L14.5 8 L17 12 L6 12 Z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round" fill="#fff"/></svg> 상담 필요</span>'
       : '';
+    const pushKnown = Object.prototype.hasOwnProperty.call(pushStatusMap, s.name);
+    const pushBadge = pushKnown
+      ? (pushStatusMap[s.name]
+        ? ' <span style="font-size:var(--fs-tiny);background:#F2F2F2;color:#111;border:1px solid #CFCFCF;border-radius:4px;padding:1px 5px;display:inline-flex;align-items:center;gap:3px;vertical-align:middle;">알림 켬</span>'
+        : ' <span style="font-size:var(--fs-tiny);background:#111;color:#fff;border-radius:4px;padding:1px 5px;display:inline-flex;align-items:center;gap:3px;vertical-align:middle;">알림 필요</span>')
+      : '';
     const flagSvg = '<svg viewBox="0 0 24 24" width="10" height="10" fill="none" style="vertical-align:-1px;"><line x1="6" y1="3.5" x2="6" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M6 4 L17 4 L14.5 8 L17 12 L6 12 Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="'+(flag.counsel?'currentColor':'none')+'"/></svg>';
     const flagBtnStyle = flag.counsel
       ? 'background:#111;color:#fff;border:1px solid #111;'
@@ -3688,7 +3817,7 @@ function renderStudentList(){
       '<div class="student-card-head">'+
         '<div class="student-card-av" style="background:'+av.bg+';color:'+av.fg+'">'+esc(nameInitials(s.name))+'</div>'+
         '<div style="flex:1;min-width:0;">'+
-          '<div class="student-card-name">'+esc(s.name)+flagBadge+'</div>'+
+          '<div class="student-card-name">'+esc(s.name)+flagBadge+pushBadge+'</div>'+
           '<div class="student-card-sub">'+streakTxt+' · '+totalTxt+(moodTxt?' · '+moodTxt:'')+'</div>'+
         '</div>'+
         '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'+
