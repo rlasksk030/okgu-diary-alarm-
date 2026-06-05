@@ -491,10 +491,15 @@ function moodSvg(emoji){ return MOOD_SVG_MAP[emoji] || ''; }
           <div class="av-menu-cls" id="menu-usercls">-</div>
         </div>
         <div class="av-menu-item" onclick="openPinSheet()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="vertical-align:-2px"><rect x="5" y="10" width="14" height="10" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M8 10 V8 A4 4 0 0 1 16 8 V10" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="14.5" r="1.4" fill="currentColor"/></svg> PIN 번호 변경</div>
-        <div class="av-menu-item" id="notif-menu-item" onclick="toggleNotification()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="vertical-align:-2px"><path d="M5 11 A7 7 0 0 1 19 11 V17 L21 19 H3 L5 17 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19 Q12 21 14 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> 일기 알림 <span id="notif-status" style="font-size:10px;margin-left:4px;color:var(--text3);">꺼짐</span></div>
-        <div class="av-menu-item" onclick="enableRealPush()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="vertical-align:-2px"><path d="M5 11 A7 7 0 0 1 19 11 V17 L21 19 H3 L5 17 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19 Q12 21 14 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/></svg> 진짜 푸시 켜기</div>
+        <div class="av-menu-item" id="push-toggle-item" onclick="toggleRealPush()" style="justify-content:space-between;">
+          <span style="display:inline-flex;align-items:center;gap:10px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="vertical-align:-2px"><path d="M5 11 A7 7 0 0 1 19 11 V17 L21 19 H3 L5 17 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19 Q12 21 14 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> 전체 푸시 알림</span>
+          <span id="push-toggle-pill" style="font-size:10px;font-weight:700;border-radius:99px;padding:3px 8px;background:#F2F2F2;color:var(--text3);">확인중</span>
+        </div>
+        <div class="av-menu-item" id="notif-menu-item" onclick="toggleNotification()" style="justify-content:space-between;">
+          <span style="display:inline-flex;align-items:center;gap:10px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="vertical-align:-2px"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M12 7 V12 L15.5 15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> 밤 10시 일기 알림</span>
+          <span id="notif-status" style="font-size:10px;font-weight:700;border-radius:99px;padding:3px 8px;background:#F2F2F2;color:var(--text3);">OFF</span>
+        </div>
         <div class="av-menu-item" onclick="testRealPush()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="vertical-align:-2px"><path d="M5 11 A7 7 0 0 1 19 11 V17 L21 19 H3 L5 17 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 4 L7.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M15 4 L16.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 19 Q12 21 14 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> 푸시 테스트</div>
-        <div class="av-menu-item" onclick="testNotification()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="vertical-align:-2px"><path d="M5 11 A7 7 0 0 1 19 11 V17 L21 19 H3 L5 17 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 4 L7.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M15 4 L16.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 19 Q12 21 14 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> 알림 테스트</div>
         <div class="av-menu-sep"></div>
         <div class="av-menu-item danger" onclick="doLogout()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="vertical-align:-2px"><path d="M14 4 H6 A2 2 0 0 0 4 6 V18 A2 2 0 0 0 6 20 H14" stroke="currentColor" stroke-width="1.6"/><path d="M14 8 L20 12 L14 16" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="10" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> 로그아웃</div>
       </div>
@@ -893,6 +898,7 @@ let _pendingDeepLink = null;
 let _deepLinkLoadAttempts = 0;
 let _praiseSending = false;
 let _pushPromptDismissedThisSession = false;
+let _realPushEnabled = false;
 
 // ========================
 //  유틸
@@ -1177,6 +1183,44 @@ function urlBase64ToUint8Array(base64String){
 function _pushSupported(){
   return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
 }
+function updatePushToggleUI(){
+  const pill = document.getElementById('push-toggle-pill');
+  if(!pill) return;
+  if(!_pushSupported()){
+    pill.textContent = '미지원';
+    pill.style.background = '#F2F2F2';
+    pill.style.color = 'var(--text3)';
+    return;
+  }
+  if(Notification.permission === 'denied'){
+    pill.textContent = '차단됨';
+    pill.style.background = '#111';
+    pill.style.color = '#fff';
+    return;
+  }
+  if(_realPushEnabled && Notification.permission === 'granted'){
+    pill.textContent = 'ON';
+    pill.style.background = '#111';
+    pill.style.color = '#fff';
+  } else {
+    pill.textContent = 'OFF';
+    pill.style.background = '#F2F2F2';
+    pill.style.color = 'var(--text3)';
+  }
+}
+function refreshMyPushStatus(){
+  updatePushToggleUI();
+  if(!currentUser) return;
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(_handleAuthErr(res)) return;
+      _realPushEnabled = !!(res && res.success && res.enabled);
+      updatePushToggleUI();
+      renderPushSetupPrompt();
+    })
+    .withFailureHandler(function(e){ console.error('my push status:', e); })
+    .getMyPushStatus(_getToken());
+}
 async function _getPushRegistration(){
   if(!_pushSupported()) throw new Error('이 기기는 Web Push를 지원하지 않아요.');
   return await navigator.serviceWorker.register('sw.js?v=20260604-push');
@@ -1206,7 +1250,9 @@ async function enableRealPush(){
       .withSuccessHandler(function(res){
         if(_handleAuthErr(res)) return;
         if(res && res.success === false){ alert(res.msg || '푸시 등록 실패'); return; }
+        _realPushEnabled = true;
         try{ localStorage.setItem(_pushPromptDismissKey(), 'on'); }catch(e){}
+        updatePushToggleUI();
         renderPushSetupPrompt();
         alert('진짜 푸시 알림이 켜졌어요. 이제 테스트를 눌러 확인해보세요.');
       })
@@ -1232,7 +1278,9 @@ async function autoRegisterRealPush(){
       .withSuccessHandler(function(res){
         if(_handleAuthErr(res)) return;
         if(res && res.success !== false){
+          _realPushEnabled = true;
           try{ localStorage.setItem(_pushPromptDismissKey(), 'on'); }catch(e){}
+          updatePushToggleUI();
           renderPushSetupPrompt();
         }
       })
@@ -1283,6 +1331,35 @@ function renderPushSetupPrompt(){
     '</div>';
   host.insertBefore(card, host.firstChild);
 }
+function toggleRealPush(){
+  if(_realPushEnabled && Notification.permission === 'granted'){
+    disableRealPush();
+  } else {
+    enableRealPush();
+  }
+}
+async function disableRealPush(){
+  closeAvMenu();
+  if(!currentUser){ alert('로그인이 필요해요.'); return; }
+  try{
+    if(_pushSupported()){
+      const reg = await _getPushRegistration();
+      const sub = await reg.pushManager.getSubscription();
+      if(sub) await sub.unsubscribe();
+    }
+  }catch(e){}
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(_handleAuthErr(res)) return;
+      if(res && res.success === false){ alert(res.msg || '푸시 끄기 실패'); return; }
+      _realPushEnabled = false;
+      updatePushToggleUI();
+      renderPushSetupPrompt();
+      alert('앱 푸시 알림을 껐어요.');
+    })
+    .withFailureHandler(function(e){ alert('푸시 끄기 오류: ' + e.message); })
+    .disablePushSubscription(_getToken());
+}
 function testRealPush(){
   closeAvMenu();
   if(!currentUser){ alert('로그인이 필요해요.'); return; }
@@ -1304,7 +1381,11 @@ function _notifKey(){ return 'okgu_notif_' + (currentUser ? currentUser.name : '
 function _updateNotifUI(){
   const on = localStorage.getItem(_notifKey()) === 'on';
   const el = document.getElementById('notif-status');
-  if(el) el.textContent = on ? '켜짐' : '꺼짐';
+  if(el){
+    el.textContent = on ? 'ON' : 'OFF';
+    el.style.background = on ? '#111' : '#F2F2F2';
+    el.style.color = on ? '#fff' : 'var(--text3)';
+  }
 }
 
 function toggleNotification(){
@@ -1415,6 +1496,8 @@ function toggleAvMenu(){
   else {
     document.getElementById('menu-username').textContent = currentUser.name;
     document.getElementById('menu-usercls').textContent  = currentUser.cls || '옥구초 6학년';
+    _updateNotifUI();
+    refreshMyPushStatus();
     overlay.classList.add('open');
   }
 }
@@ -1502,6 +1585,7 @@ function afterLogin(){
   _scheduleDiaryNotif();
   setTimeout(function(){
     autoRegisterRealPush();
+    refreshMyPushStatus();
     renderPushSetupPrompt();
     showPushSetupPromptPopup();
   }, 900);
