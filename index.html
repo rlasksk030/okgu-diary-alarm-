@@ -618,8 +618,8 @@ function moodSvg(emoji){ return MOOD_SVG_MAP[emoji] || ''; }
     </div>
     <div class="slabel">사진 첨부</div>
     <div class="card">
-      <div class="photo-area" id="photo-drop-area" onclick="document.getElementById('photo-file-input').click()">
-        <input type="file" id="photo-file-input" accept="image/*" multiple style="display:none" onchange="handlePhotoSelect(this)">
+      <div class="photo-area" id="photo-drop-area">
+        <input type="file" id="photo-file-input" accept="image/*" multiple onchange="handlePhotoSelect(this)" aria-label="사진 선택">
         <div style="display:flex;justify-content:center;color:#111;"><svg viewBox="0 0 24 24" width="24" height="24" fill="none"><rect x="3.5" y="6.5" width="17" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 6.5 L9.5 4.5 H14.5 L16 6.5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" stroke="currentColor" stroke-width="1.6"/></svg></div>
         <div style="font-size:11px;color:var(--text3);margin-top:3px;">사진 올리기 (여러 장 가능)</div>
         <div style="font-size:10px;color:var(--text3);margin-top:1px;">클릭하거나 사진을 여기로 끌어다 놓으세요</div>
@@ -899,10 +899,22 @@ let _deepLinkLoadAttempts = 0;
 let _praiseSending = false;
 let _pushPromptDismissedThisSession = false;
 let _realPushEnabled = false;
+let _commentSendLocks = {};
 
 // ========================
 //  유틸
 // ========================
+function _commentLockKey(kind, target, text){
+  return kind + '|' + target + '|' + String(text || '').trim();
+}
+function _tryCommentLock(key){
+  if(_commentSendLocks[key]) return false;
+  _commentSendLocks[key] = true;
+  return true;
+}
+function _releaseCommentLock(key){
+  delete _commentSendLocks[key];
+}
 function fmtKey(dt){
   return dt.getFullYear()+'-'+
     String(dt.getMonth()+1).padStart(2,'0')+'-'+
@@ -2222,6 +2234,31 @@ function saveToday(){
   }
 }
 
+function _uploadPhotoChunked(base64, fileName, studentName, onSuccess, onFailure, onProgress){
+  const CHUNK_SIZE = 4500;
+  const uploadId = 'up_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  const totalChunks = Math.max(1, Math.ceil(base64.length / CHUNK_SIZE));
+  function sendChunk(idx){
+    if(onProgress) onProgress(idx + 1, totalChunks);
+    const chunk = base64.slice(idx * CHUNK_SIZE, (idx + 1) * CHUNK_SIZE);
+    google.script.run
+      .withSuccessHandler(function(res){
+        if(res && res.success === false){
+          onFailure(new Error(res.msg || '사진 업로드 실패'));
+          return;
+        }
+        if(res && res.done){
+          onSuccess(res);
+          return;
+        }
+        sendChunk(idx + 1);
+      })
+      .withFailureHandler(onFailure)
+      .uploadPhotoChunk(uploadId, idx, totalChunks, chunk, fileName, studentName);
+  }
+  sendChunk(0);
+}
+
 function _uploadPhotosSequentially(date, text, isSecret, isPublic, isMeOnly, spinner){
   const photos = [...pendingPhotos];
   const driveUrls = [];
@@ -2249,18 +2286,24 @@ function _uploadPhotosSequentially(date, text, isSecret, isPublic, isMeOnly, spi
     bar.style.width = Math.round((idx / photos.length) * 100) + '%';
     const p = photos[idx];
     const fileName = currentUser.name + '_' + date + '_' + idx + '.jpg';
-    google.script.run
-      .withSuccessHandler(function(res){
+    _uploadPhotoChunked(
+      p.base64,
+      fileName,
+      currentUser.name,
+      function(res){
         if(res && res.success) driveUrls.push(res.url);
         else failedCount++;
         uploadNext(idx + 1);
-      })
-      .withFailureHandler(function(e){
+      },
+      function(e){
         console.error(e);
         failedCount++;
         uploadNext(idx + 1); // 실패해도 계속
-      })
-      .uploadPhoto(p.base64, fileName, currentUser.name);
+      },
+      function(chunkIdx, totalChunks){
+        lbl.textContent = `사진 업로드 중... (${idx+1}/${photos.length}, ${chunkIdx}/${totalChunks})`;
+      }
+    );
   }
   uploadNext(0);
 }
@@ -2662,11 +2705,14 @@ function submitComment(idx, postId){
   const input = document.getElementById('cinput-'+idx);
   const text  = input.value.trim();
   if(!text) return;
+  const lockKey = _commentLockKey('board-comment', postId, text);
+  if(!_tryCommentLock(lockKey)) return;
   const btn = input && input.parentElement ? input.parentElement.querySelector('.comment-send') : null;
   input.disabled = true;
   if(btn) btn.disabled = true;
   google.script.run
     .withSuccessHandler(function(res){
+      _releaseCommentLock(lockKey);
       input.disabled = false;
       if(btn) btn.disabled = false;
       if(res && res.success === false){ alert(res.msg||'댓글 전송 실패'); return; }
@@ -2683,7 +2729,7 @@ function submitComment(idx, postId){
       });
       refreshBoardPost(idx, true);
     })
-    .withFailureHandler(function(e){ input.disabled = false; if(btn) btn.disabled = false; console.error(e); })
+    .withFailureHandler(function(e){ _releaseCommentLock(lockKey); input.disabled = false; if(btn) btn.disabled = false; console.error(e); })
     .addComment(postId, currentUser.name, text);
 }
 
@@ -2705,11 +2751,14 @@ function submitReply(parentCmtId, postIdx, postId){
   const inp = document.getElementById('cmtreplyinput-'+parentCmtId);
   const text = inp ? inp.value.trim() : '';
   if(!text) return;
+  const lockKey = _commentLockKey('board-reply', postId + '|' + parentCmtId, text);
+  if(!_tryCommentLock(lockKey)) return;
   const btn = inp && inp.parentElement ? inp.parentElement.querySelector('.comment-send, button') : null;
   inp.disabled = true;
   if(btn) btn.disabled = true;
   google.script.run
     .withSuccessHandler(function(res){
+      _releaseCommentLock(lockKey);
       inp.disabled = false;
       if(btn) btn.disabled = false;
       if(res && res.success === false){ alert(res.msg||'답글 전송 실패'); return; }
@@ -2726,7 +2775,7 @@ function submitReply(parentCmtId, postIdx, postId){
       });
       refreshBoardPost(postIdx, true);
     })
-    .withFailureHandler(function(e){ inp.disabled = false; if(btn) btn.disabled = false; console.error(e); })
+    .withFailureHandler(function(e){ _releaseCommentLock(lockKey); inp.disabled = false; if(btn) btn.disabled = false; console.error(e); })
     .addComment(postId, currentUser.name, text, parentCmtId);
 }
 
@@ -3825,10 +3874,16 @@ function submitFeedComment(diaryId, idx){
   const input=document.getElementById('ftc-input-'+idx);
   const text=input.value.trim();
   if(!text) return;
+  const lockKey = _commentLockKey('feed-teacher-comment', diaryId, text);
+  if(!_tryCommentLock(lockKey)) return;
+  const btn = input && input.parentElement ? input.parentElement.querySelector('.tc-send, button') : null;
   input.disabled=true;
+  if(btn) btn.disabled=true;
   google.script.run
     .withSuccessHandler(function(res){
+      _releaseCommentLock(lockKey);
       input.disabled=false;
+      if(btn) btn.disabled=false;
       if(_handleAuthErr(res)) return;
       if(res.success){
         input.value='';
@@ -3845,7 +3900,7 @@ function submitFeedComment(diaryId, idx){
         </div>`;
       } else if(res && res.msg){ alert(res.msg); }
     })
-    .withFailureHandler(function(e){ input.disabled=false; console.error(e); })
+    .withFailureHandler(function(e){ _releaseCommentLock(lockKey); input.disabled=false; if(btn) btn.disabled=false; console.error(e); })
     .addTeacherComment(_getToken(), diaryId, text);
 }
 
@@ -4026,10 +4081,16 @@ function submitTeacherComment(diaryId, idx){
   const input = document.getElementById('tc-input-'+idx);
   const text  = input.value.trim();
   if(!text) return;
+  const lockKey = _commentLockKey('modal-teacher-comment', diaryId, text);
+  if(!_tryCommentLock(lockKey)) return;
+  const btn = input && input.parentElement ? input.parentElement.querySelector('.tc-send, button') : null;
   input.disabled=true;
+  if(btn) btn.disabled=true;
   google.script.run
     .withSuccessHandler(function(res){
+      _releaseCommentLock(lockKey);
       input.disabled=false;
+      if(btn) btn.disabled=false;
       if(_handleAuthErr(res)) return;
       if(res.success){
         input.value='';
@@ -4046,7 +4107,7 @@ function submitTeacherComment(diaryId, idx){
         </div>`;
       } else if(res && res.msg){ alert(res.msg); }
     })
-    .withFailureHandler(function(e){ input.disabled=false; console.error(e); })
+    .withFailureHandler(function(e){ _releaseCommentLock(lockKey); input.disabled=false; if(btn) btn.disabled=false; console.error(e); })
     .addTeacherComment(_getToken(), diaryId, text);
 }
 
@@ -4133,11 +4194,17 @@ function submitStatTcReply(diaryId, commentId){
   const inp = document.getElementById('stcreplyinput-'+commentId);
   const text = inp ? inp.value.trim() : '';
   if(!text) return;
+  const lockKey = _commentLockKey('stat-teacher-reply', diaryId + '|' + commentId, text);
+  if(!_tryCommentLock(lockKey)) return;
+  const btn = inp && inp.parentElement ? inp.parentElement.querySelector('button') : null;
   const row = document.getElementById('stc-'+commentId);
   inp.disabled = true;
+  if(btn) btn.disabled = true;
   google.script.run
     .withSuccessHandler(function(res){
+      _releaseCommentLock(lockKey);
       inp.disabled = false;
+      if(btn) btn.disabled = false;
       if(res && res.success === false){ alert(res.msg || '답글 전송 실패'); return; }
       const replyId = (res && res.id) || ('sr_local_'+Date.now());
       const html = '<div class="student-tc-item" id="stc-'+replyId+'" style="margin-left:12px;border-left:2px solid #ddd;padding-left:8px;">' +
@@ -4147,7 +4214,9 @@ function submitStatTcReply(diaryId, commentId){
       closeStatTcReply(commentId);
     })
     .withFailureHandler(function(e){
+      _releaseCommentLock(lockKey);
       inp.disabled = false;
+      if(btn) btn.disabled = false;
       alert('답글 전송 중 오류: '+e.message);
     })
     .addStudentReplyToDiary(diaryId, currentUser.name, text, commentId);
