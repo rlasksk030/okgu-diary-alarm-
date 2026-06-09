@@ -2154,8 +2154,8 @@ function resizeAndPreview(file){
       try {
         // 기존 픽셀 크기 상한은 유지하고, 업로드 용량은 JPEG 품질로 낮춘다.
         const canvas = document.createElement('canvas');
-        const MAX_W = 640, MAX_H = 640;
-        const JPEG_QUALITY = 0.5;
+        const MAX_W = 520, MAX_H = 520;
+        const JPEG_QUALITY = 0.42;
         let w = img.width, h = img.height;
         if(w > MAX_W){ h = Math.round(h * MAX_W / w); w = MAX_W; }
         if(h > MAX_H){ w = Math.round(w * MAX_H / h); h = MAX_H; }
@@ -2236,27 +2236,79 @@ function saveToday(){
 
 function _uploadPhotoChunked(base64, fileName, studentName, onSuccess, onFailure, onProgress){
   const CHUNK_SIZE = 6000;
+  const CONCURRENCY = 4;
   const uploadId = 'up_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
   const totalChunks = Math.max(1, Math.ceil(base64.length / CHUNK_SIZE));
-  function sendChunk(idx){
-    if(onProgress) onProgress(idx + 1, totalChunks);
+  let nextIdx = 0;
+  let active = 0;
+  let completed = 0;
+  let finished = false;
+  let finalCheckStarted = false;
+
+  function fail(err){
+    if(finished) return;
+    finished = true;
+    onFailure(err);
+  }
+
+  function pump(){
+    if(finished) return;
+    while(active < CONCURRENCY && nextIdx < totalChunks){
+      sendChunk(nextIdx++);
+    }
+    if(!finished && !finalCheckStarted && nextIdx >= totalChunks && active === 0 && completed >= totalChunks){
+      finalCheckStarted = true;
+      sendFinalCheck();
+    }
+  }
+
+  function sendFinalCheck(){
+    const idx = totalChunks - 1;
     const chunk = base64.slice(idx * CHUNK_SIZE, (idx + 1) * CHUNK_SIZE);
     google.script.run
       .withSuccessHandler(function(res){
         if(res && res.success === false){
-          onFailure(new Error(res.msg || '사진 업로드 실패'));
+          fail(new Error(res.msg || '사진 업로드 실패'));
           return;
         }
         if(res && res.done){
+          finished = true;
           onSuccess(res);
           return;
         }
-        sendChunk(idx + 1);
+        fail(new Error('사진 업로드 완료 확인에 실패했어요.'));
       })
-      .withFailureHandler(onFailure)
+      .withFailureHandler(fail)
       .uploadPhotoChunk(uploadId, idx, totalChunks, chunk, fileName, studentName);
   }
-  sendChunk(0);
+
+  function sendChunk(idx){
+    active++;
+    if(onProgress) onProgress(Math.min(totalChunks, completed + active), totalChunks);
+    const chunk = base64.slice(idx * CHUNK_SIZE, (idx + 1) * CHUNK_SIZE);
+    google.script.run
+      .withSuccessHandler(function(res){
+        active--;
+        completed++;
+        if(res && res.success === false){
+          fail(new Error(res.msg || '사진 업로드 실패'));
+          return;
+        }
+        if(res && res.done){
+          finished = true;
+          onSuccess(res);
+          return;
+        }
+        pump();
+      })
+      .withFailureHandler(function(e){
+        active--;
+        completed++;
+        fail(e);
+      })
+      .uploadPhotoChunk(uploadId, idx, totalChunks, chunk, fileName, studentName);
+  }
+  pump();
 }
 
 function _uploadPhotosSequentially(date, text, isSecret, isPublic, isMeOnly, spinner){
