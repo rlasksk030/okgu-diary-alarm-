@@ -2154,8 +2154,8 @@ function resizeAndPreview(file){
       try {
         // 기존 픽셀 크기 상한은 유지하고, 업로드 용량은 JPEG 품질로 낮춘다.
         const canvas = document.createElement('canvas');
-        const MAX_W = 800, MAX_H = 800;
-        const JPEG_QUALITY = 0.62;
+        const MAX_W = 640, MAX_H = 640;
+        const JPEG_QUALITY = 0.5;
         let w = img.width, h = img.height;
         if(w > MAX_W){ h = Math.round(h * MAX_W / w); w = MAX_W; }
         if(h > MAX_H){ w = Math.round(w * MAX_H / h); h = MAX_H; }
@@ -2235,7 +2235,7 @@ function saveToday(){
 }
 
 function _uploadPhotoChunked(base64, fileName, studentName, onSuccess, onFailure, onProgress){
-  const CHUNK_SIZE = 4500;
+  const CHUNK_SIZE = 6000;
   const uploadId = 'up_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
   const totalChunks = Math.max(1, Math.ceil(base64.length / CHUNK_SIZE));
   function sendChunk(idx){
