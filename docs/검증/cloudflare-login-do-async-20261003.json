@@ -1,0 +1,113 @@
+{
+  "at": "2026-10-02T16:14:40.355Z",
+  "origin": "https://okgu-diary-trial.rlasksk030.workers.dev",
+  "environment": "actual deployed Cloudflare Free trial; no Paid activation",
+  "measurementLocation": "Codex cloud via configured proxy; TLS verification enabled",
+  "credentialPreparation": {
+    "accountAlias": "synthetic-load:13",
+    "hash": "PBKDF2-HMAC-SHA256 600000",
+    "samePublicSyntheticPin": true,
+    "changedCount": 0
+  },
+  "requests": [
+    {
+      "case": "wrong-pin",
+      "httpStatus": 401,
+      "durationMs": 4767,
+      "hasToken": false,
+      "cpuError1102": false,
+      "code": "E_AUTH",
+      "cfRay": "a4450005fcd4f4a2-ORD"
+    },
+    {
+      "case": "pbkdf2-repeat-login",
+      "httpStatus": 200,
+      "durationMs": 4415,
+      "hasToken": true,
+      "cpuError1102": false,
+      "cfRay": "a4450023fa1ca468-ORD"
+    },
+    {
+      "case": "pbkdf2-verify",
+      "httpStatus": 200,
+      "durationMs": 4580,
+      "hasToken": true,
+      "cpuError1102": false,
+      "cfRay": "a445003fb9ab10c3-ORD"
+    }
+  ],
+  "events": [
+    {
+      "case": "wrong-pin",
+      "engines": [],
+      "outcome": "ok",
+      "stages": [
+        "credential_read_begin",
+        "credential_read_done",
+        "pin_verify_begin"
+      ],
+      "cpuTimeMs": 5,
+      "wallTimeMs": 4700
+    },
+    {
+      "case": "internal-kdf",
+      "engines": [
+        "fallback"
+      ],
+      "outcome": "ok",
+      "stages": [],
+      "cpuTimeMs": 3943,
+      "wallTimeMs": 4626
+    },
+    {
+      "case": "internal-kdf",
+      "engines": [
+        "fallback"
+      ],
+      "outcome": "ok",
+      "stages": [],
+      "cpuTimeMs": 3671,
+      "wallTimeMs": 4170
+    },
+    {
+      "case": "pbkdf2-repeat-login",
+      "engines": [],
+      "outcome": "ok",
+      "stages": [
+        "credential_read_begin",
+        "credential_read_done",
+        "pin_verify_begin",
+        "pin_verify_done",
+        "session_create_begin",
+        "session_create_done",
+        "session_validate_done"
+      ],
+      "cpuTimeMs": 6,
+      "wallTimeMs": 4295
+    },
+    {
+      "case": "pbkdf2-verify",
+      "engines": [],
+      "outcome": "ok",
+      "stages": [
+        "credential_read_begin",
+        "credential_read_done",
+        "pin_verify_begin",
+        "pin_verify_done",
+        "session_create_begin",
+        "session_create_done",
+        "session_validate_done"
+      ],
+      "cpuTimeMs": 7,
+      "wallTimeMs": 4408
+    }
+  ],
+  "tailDeleted": true,
+  "allLoginSucceeded": true,
+  "limitations": [
+    "Wall request durations are not CPU timings or successful login speed",
+    "Tail outcome and last completed stage locate the failure; CPU milliseconds only if provided by tail",
+    "No tokens, PINs, credential hashes, signed tail URLs, headers or raw events are stored",
+    "Synthetic fixture seed upload is separate from authenticated app photo-save verification"
+  ]
+}

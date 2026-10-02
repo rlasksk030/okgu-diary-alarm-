@@ -1,0 +1,44 @@
+{
+  "time": "2026-10-02T16:35:40.385Z",
+  "apiOrigin": "https://okgu-diary-trial.rlasksk030.workers.dev",
+  "environment": "deployed Cloudflare trial",
+  "hash": {
+    "algorithm": "PBKDF2 SHA256",
+    "iterations": 600000,
+    "unchanged": true
+  },
+  "nodeMicrobenchmark": {
+    "runtime": "v24.19.0",
+    "hashMs": 87,
+    "verifyMs": 82,
+    "thirteenParallelVerifyWallMs": 335,
+    "note": "Node WebCrypto microbenchmark is separate from Worker CPU/latency; does not prove deployed CPU consumption"
+  },
+  "workerdHTTP": {
+    "firstSerialLogin": {
+      "n": 13,
+      "p50": 2989,
+      "p95": 4646
+    },
+    "warmSerialLogin": {
+      "n": 13,
+      "p50": 3257,
+      "p95": 4422
+    },
+    "warmThirteenConcurrentLogin": {
+      "n": 13,
+      "p50": 3818,
+      "p95": 6116
+    },
+    "thirteenConcurrentSessionVerify": {
+      "n": 13,
+      "p50": 98,
+      "p95": 139
+    }
+  },
+  "limitations": [
+    "No hash/authentication checks disabled",
+    "First measured logins may already use PBKDF2; cold legacy upgrade is not inferred",
+    "End-to-end HTTP timing cannot separate D1 wait, isolate queue and native crypto CPU; deployed metrics/profiling still required"
+  ]
+}

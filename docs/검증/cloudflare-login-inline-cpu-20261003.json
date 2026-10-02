@@ -1,0 +1,88 @@
+{
+  "at": "2026-10-02T15:56:57.174Z",
+  "origin": "https://okgu-diary-trial.rlasksk030.workers.dev",
+  "environment": "actual deployed Cloudflare Free trial; no Paid activation",
+  "measurementLocation": "Codex cloud via configured proxy; TLS verification enabled",
+  "credentialPreparation": {
+    "accountAlias": "synthetic-load:13",
+    "hash": "PBKDF2-HMAC-SHA256 600000",
+    "samePublicSyntheticPin": true,
+    "changedCount": 1
+  },
+  "requests": [
+    {
+      "case": "wrong-legacy-pin",
+      "httpStatus": 401,
+      "durationMs": 97,
+      "hasToken": false,
+      "cpuError1102": false,
+      "code": "E_AUTH",
+      "cfRay": "a444e656cfd3e74c-ORD"
+    },
+    {
+      "case": "legacy-upgrade",
+      "httpStatus": 200,
+      "durationMs": 2095,
+      "hasToken": true,
+      "cpuError1102": false,
+      "cfRay": "a444e657ffe4f3ee-ORD"
+    },
+    {
+      "case": "pbkdf2-verify",
+      "httpStatus": 503,
+      "durationMs": 467,
+      "hasToken": false,
+      "cpuError1102": false,
+      "cfRay": "a444e664bf93512a-ORD"
+    }
+  ],
+  "events": [
+    {
+      "case": "wrong-legacy-pin",
+      "outcome": "ok",
+      "stages": [
+        "credential_read_begin",
+        "credential_read_done",
+        "pin_verify_begin"
+      ],
+      "cpuTimeMs": 3,
+      "wallTimeMs": 48
+    },
+    {
+      "case": "legacy-upgrade",
+      "outcome": "ok",
+      "stages": [
+        "credential_read_begin",
+        "credential_read_done",
+        "pin_verify_begin",
+        "pin_verify_done",
+        "pin_upgrade_begin",
+        "pin_upgrade_done",
+        "session_create_begin",
+        "session_create_done",
+        "session_validate_done"
+      ],
+      "cpuTimeMs": 1713,
+      "wallTimeMs": 1915
+    },
+    {
+      "case": "pbkdf2-verify",
+      "outcome": "exceededCpu",
+      "stages": [
+        "credential_read_begin",
+        "credential_read_done",
+        "pin_verify_begin"
+      ],
+      "cpuTimeMs": 306,
+      "wallTimeMs": 366
+    }
+  ],
+  "tailDeleted": true,
+  "allLoginSucceeded": false,
+  "limitations": [
+    "Wall request durations are not CPU timings or successful login speed",
+    "Tail outcome and last completed stage locate the failure; CPU milliseconds only if provided by tail",
+    "No tokens, PINs, credential hashes, signed tail URLs, headers or raw events are stored",
+    "Synthetic fixture seed upload is separate from authenticated app photo-save verification"
+  ]
+}

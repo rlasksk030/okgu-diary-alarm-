@@ -1,6 +1,6 @@
 # Cloudflare 시험 배포 설정 — 2026-10-02
 
-운영 main과 GitHub Pages를 변경하지 않는 별도 시험 Worker입니다. Cloudflare 화면을 닫아도 GitHub에서 다시 연결할 수 있습니다. 실제 가상 시험 배포는 완료됐으나 Workers Free CPU1102 때문에 로그인이 막혀 있습니다. 사용자는 Workers Paid 전환을 보류했습니다. 현재 시험 상태를 보존합니다. 실제 주소와 결과는 [로그인·시험 실행](Cloudflare_로그인과시험실행.md)을 봅니다.
+운영 main과 기존 GitHub Pages 주소를 유지하는 별도 가상 시험입니다. **2026-10-03 최신: Paid 전환 없이1102 해결·실제13명 API/browser 실패0**. 같은600,000회 KDF만 무료 비공개 Durable Object로 분리했고 DB는 D1/사진은private R2입니다. 로그인/목록/글 속도 목표는 미달했습니다. [최신 원인·측정·비용](로그인_CPU_무료해결_2026-10-03.md). 실제 학생/main/Pages/실제 푸시는 최종 승인 전 변경하지 않습니다.
 
 ## 이번 시험의 권장 경로: Codex에서 CLI 배포
 
@@ -23,6 +23,8 @@
 배포 스크립트도 `WORKERS_CI_BRANCH`를 확인하여 main과 다른 브랜치의 배포를 거부합니다. 하지만 Cloudflare 화면의 브랜치 연결을 바꾸는 대신 사용할 수는 없습니다. 기존 Pages 설정과 main에는 손대지 않습니다.
 
 ## Git 연동으로 배포할 경우 필요한 시험 리소스
+
+시험 D1/R2와 private LOGIN_KDF/PinKdf binding은 이미 CLI로 생성/연결했습니다. 아래 값은 새 계정에서 재현할 때 사용하고 같은 이름을 중복 생성하지 않습니다. `deploy:trial`이 항상 시험 화면을 다시 빌드하며 DO `new_sqlite_classes` migration으로 무료 지원 SQLite backend를 선언합니다.
 
 1. Storage & databases → D1 → Create Database에서 **okgu-diary-trial**을 만듭니다. 운영 자료를 넣지 않습니다.
 2. R2 Object Storage에서 **okgu-diary-trial-private** Standard 버킷을 만듭니다. Public development URL과 Custom domain은 활성화하지 않습니다. R2는 결제수단 등록/구독 동의 화면이 나올 수 있으므로 아래 비용을 먼저 검토하십시오. 이 시험 버킷은 승인된 R2 활성화 후 이미 생성했고 비공개 설정을 실제 API로 확인했습니다. 같은 이름의 리소스를 중복 생성하지 마십시오.
@@ -57,7 +59,7 @@ R2 사용량은 요금 단위로 올림됩니다. Infrequent Access에는 무료
 
 13명 × 하루 4사진 × 30일 = 월 1,560사진. 평균 100KB 압축 사진이면 월 약 0.156GB, 1년 약 1.87GB 증가로 R2 무료 저장 범위 안입니다. 사진 1MB 최대치가 매번 발생하면 1년 약 18.7GB로 무료 10GB 초과분의 저장료가 월 약 $0.14 수준으로 증가할 수 있습니다. 파일 보존 기간과 기존 계정 사용량에 따라 다릅니다. 별도 작은 썸네일을 원본과 함께 저장하므로 저장량에 썸네일도 더합니다(예: 10KB/개이면 연 약 0.19GB 추가). Class A 업로드 약 3,120/월 및 일반적인 조회는 무료 요청 범위 이내로 예상합니다.
 
-Workers 무료 CPU10ms는 현재600,000회 PBKDF2 대체 경로에서 **실제1102**로 실패합니다. native 경로 자체의 iteration 상한100,000회도 확인했고 동일 강도 대체 경로를 적용했습니다. 무료에서 앱 로그인은 사용할 수 없습니다. Workers Paid 기본$5/월(세금/환율 별도), 위 사용 가정에서 R2 무료 초과가 없다면 대략$5/월이지만 전체 사용량과 실제 CPU로 확인해야 합니다. Paid가 성능 목표 달성을 보장하지 않습니다. 사용자는 **보류 — 현재 상태 보존**을 선택했습니다. Workers 유료 전환은 하지 않았습니다. R2 기본$0 구독 활성화는 별도 승인으로 사용자가 완료했습니다.
+직접 Worker의600,000회 KDF는 실제CPU1102를 발생시켰습니다. 현재 같은 계산을 무료 SQLite Durable Objects의 별도 기본30초 CPU 예산으로 분리해 해결했습니다. DO Free는10만요청/일·13,000GB-s/일·SQL 저장5GB이며 초과하면 제한됩니다. DB 학생 자료를 DO에 저장하지 않습니다. 현재 작은 시험의 기본 예상 추가비용$0, 공용 계정 사용량/R2 초과는 별도입니다. Workers Paid 기본$5/월은 보류를 유지했고 활성화하지 않았습니다. Paid 허용량 증가가 native PBKDF2 iteration 상한이나 로그인 속도를 자동 해결하지 않습니다.
 
 공식 출처:
 - https://developers.cloudflare.com/workers/platform/pricing/

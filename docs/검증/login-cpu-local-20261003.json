@@ -1,0 +1,733 @@
+{
+  "at": "2026-10-02T15:52:08.102Z",
+  "environment": "Codex cloud Node process + synthetic SQLite D1 adapter; NOT deployed Worker CPU",
+  "hash": "PBKDF2-HMAC-SHA256 600000, unchanged",
+  "conditions": "Sequential samples, no other test suite; fallback forced by native-cap shim only in this process; full login, no authentication bypass",
+  "samples": [
+    {
+      "mode": "native-pbkdf2",
+      "outcome": "authenticated",
+      "wallMs": 84.136,
+      "processCpuMs": 83.629,
+      "stages": [
+        {
+          "stage": "credential_read_begin",
+          "wallMs": 0.62,
+          "processCpuMs": 0.596
+        },
+        {
+          "stage": "credential_read_done",
+          "wallMs": 0.85,
+          "processCpuMs": 0.831
+        },
+        {
+          "stage": "pin_verify_begin",
+          "wallMs": 0.859,
+          "processCpuMs": 0.843
+        },
+        {
+          "stage": "pin_verify_done",
+          "wallMs": 82.882,
+          "processCpuMs": 82.225
+        },
+        {
+          "stage": "session_create_begin",
+          "wallMs": 83.444,
+          "processCpuMs": 82.999
+        },
+        {
+          "stage": "session_create_done",
+          "wallMs": 83.772,
+          "processCpuMs": 83.329
+        },
+        {
+          "stage": "session_validate_done",
+          "wallMs": 83.901,
+          "processCpuMs": 83.459
+        }
+      ],
+      "intervals": [
+        {
+          "label": "D1_credentials",
+          "wallMs": 0.23,
+          "processCpuMs": 0.235
+        },
+        {
+          "label": "PIN_verify",
+          "wallMs": 82.023,
+          "processCpuMs": 81.382
+        },
+        {
+          "label": "session_create",
+          "wallMs": 0.328,
+          "processCpuMs": 0.33
+        },
+        {
+          "label": "session_revalidate",
+          "wallMs": 0.129,
+          "processCpuMs": 0.13
+        }
+      ]
+    },
+    {
+      "mode": "native-pbkdf2",
+      "outcome": "authenticated",
+      "wallMs": 84.443,
+      "processCpuMs": 84.143,
+      "stages": [
+        {
+          "stage": "credential_read_begin",
+          "wallMs": 0.16,
+          "processCpuMs": 0.225
+        },
+        {
+          "stage": "credential_read_done",
+          "wallMs": 0.264,
+          "processCpuMs": 0.333
+        },
+        {
+          "stage": "pin_verify_begin",
+          "wallMs": 0.284,
+          "processCpuMs": 0.347
+        },
+        {
+          "stage": "pin_verify_done",
+          "wallMs": 83.621,
+          "processCpuMs": 83.299
+        },
+        {
+          "stage": "session_create_begin",
+          "wallMs": 83.993,
+          "processCpuMs": 83.718
+        },
+        {
+          "stage": "session_create_done",
+          "wallMs": 84.275,
+          "processCpuMs": 84
+        },
+        {
+          "stage": "session_validate_done",
+          "wallMs": 84.331,
+          "processCpuMs": 84.057
+        }
+      ],
+      "intervals": [
+        {
+          "label": "D1_credentials",
+          "wallMs": 0.104,
+          "processCpuMs": 0.108
+        },
+        {
+          "label": "PIN_verify",
+          "wallMs": 83.337,
+          "processCpuMs": 82.952
+        },
+        {
+          "label": "session_create",
+          "wallMs": 0.282,
+          "processCpuMs": 0.282
+        },
+        {
+          "label": "session_revalidate",
+          "wallMs": 0.056,
+          "processCpuMs": 0.057
+        }
+      ]
+    },
+    {
+      "mode": "native-pbkdf2",
+      "outcome": "authenticated",
+      "wallMs": 81.694,
+      "processCpuMs": 81.535,
+      "stages": [
+        {
+          "stage": "credential_read_begin",
+          "wallMs": 0.137,
+          "processCpuMs": 0.104
+        },
+        {
+          "stage": "credential_read_done",
+          "wallMs": 0.256,
+          "processCpuMs": 0.225
+        },
+        {
+          "stage": "pin_verify_begin",
+          "wallMs": 0.265,
+          "processCpuMs": 0.233
+        },
+        {
+          "stage": "pin_verify_done",
+          "wallMs": 80.993,
+          "processCpuMs": 80.878
+        },
+        {
+          "stage": "session_create_begin",
+          "wallMs": 81.312,
+          "processCpuMs": 81.18
+        },
+        {
+          "stage": "session_create_done",
+          "wallMs": 81.52,
+          "processCpuMs": 81.388
+        },
+        {
+          "stage": "session_validate_done",
+          "wallMs": 81.573,
+          "processCpuMs": 81.445
+        }
+      ],
+      "intervals": [
+        {
+          "label": "D1_credentials",
+          "wallMs": 0.119,
+          "processCpuMs": 0.121
+        },
+        {
+          "label": "PIN_verify",
+          "wallMs": 80.728,
+          "processCpuMs": 80.645
+        },
+        {
+          "label": "session_create",
+          "wallMs": 0.208,
+          "processCpuMs": 0.208
+        },
+        {
+          "label": "session_revalidate",
+          "wallMs": 0.053,
+          "processCpuMs": 0.057
+        }
+      ]
+    },
+    {
+      "mode": "fallback-legacy-upgrade",
+      "outcome": "authenticated",
+      "wallMs": 669.373,
+      "processCpuMs": 617.448,
+      "stages": [
+        {
+          "stage": "credential_read_begin",
+          "wallMs": 0.202,
+          "processCpuMs": 0.311
+        },
+        {
+          "stage": "credential_read_done",
+          "wallMs": 0.292,
+          "processCpuMs": 0.401
+        },
+        {
+          "stage": "pin_verify_begin",
+          "wallMs": 0.297,
+          "processCpuMs": 0.407
+        },
+        {
+          "stage": "pin_verify_done",
+          "wallMs": 0.39,
+          "processCpuMs": 0.492
+        },
+        {
+          "stage": "pin_upgrade_begin",
+          "wallMs": 0.395,
+          "processCpuMs": 0.496
+        },
+        {
+          "stage": "pin_upgrade_done",
+          "wallMs": 668.586,
+          "processCpuMs": 616.71
+        },
+        {
+          "stage": "session_create_begin",
+          "wallMs": 668.869,
+          "processCpuMs": 616.981
+        },
+        {
+          "stage": "session_create_done",
+          "wallMs": 669.125,
+          "processCpuMs": 617.236
+        },
+        {
+          "stage": "session_validate_done",
+          "wallMs": 669.225,
+          "processCpuMs": 617.336
+        }
+      ],
+      "intervals": [
+        {
+          "label": "D1_credentials",
+          "wallMs": 0.09,
+          "processCpuMs": 0.09
+        },
+        {
+          "label": "PIN_verify",
+          "wallMs": 0.093,
+          "processCpuMs": 0.085
+        },
+        {
+          "label": "PIN_upgrade",
+          "wallMs": 668.191,
+          "processCpuMs": 616.214
+        },
+        {
+          "label": "session_create",
+          "wallMs": 0.256,
+          "processCpuMs": 0.255
+        },
+        {
+          "label": "session_revalidate",
+          "wallMs": 0.1,
+          "processCpuMs": 0.1
+        }
+      ]
+    },
+    {
+      "mode": "fallback-legacy-upgrade",
+      "outcome": "authenticated",
+      "wallMs": 699.653,
+      "processCpuMs": 643.228,
+      "stages": [
+        {
+          "stage": "credential_read_begin",
+          "wallMs": 0.11,
+          "processCpuMs": 0.104
+        },
+        {
+          "stage": "credential_read_done",
+          "wallMs": 0.196,
+          "processCpuMs": 0.19
+        },
+        {
+          "stage": "pin_verify_begin",
+          "wallMs": 0.201,
+          "processCpuMs": 0.196
+        },
+        {
+          "stage": "pin_verify_done",
+          "wallMs": 0.297,
+          "processCpuMs": 0.288
+        },
+        {
+          "stage": "pin_upgrade_begin",
+          "wallMs": 0.301,
+          "processCpuMs": 0.292
+        },
+        {
+          "stage": "pin_upgrade_done",
+          "wallMs": 698.829,
+          "processCpuMs": 642.358
+        },
+        {
+          "stage": "session_create_begin",
+          "wallMs": 699.217,
+          "processCpuMs": 642.837
+        },
+        {
+          "stage": "session_create_done",
+          "wallMs": 699.467,
+          "processCpuMs": 643.087
+        },
+        {
+          "stage": "session_validate_done",
+          "wallMs": 699.523,
+          "processCpuMs": 643.145
+        }
+      ],
+      "intervals": [
+        {
+          "label": "D1_credentials",
+          "wallMs": 0.086,
+          "processCpuMs": 0.086
+        },
+        {
+          "label": "PIN_verify",
+          "wallMs": 0.096,
+          "processCpuMs": 0.092
+        },
+        {
+          "label": "PIN_upgrade",
+          "wallMs": 698.528,
+          "processCpuMs": 642.066
+        },
+        {
+          "label": "session_create",
+          "wallMs": 0.25,
+          "processCpuMs": 0.25
+        },
+        {
+          "label": "session_revalidate",
+          "wallMs": 0.056,
+          "processCpuMs": 0.058
+        }
+      ]
+    },
+    {
+      "mode": "fallback-legacy-upgrade",
+      "outcome": "authenticated",
+      "wallMs": 662.117,
+      "processCpuMs": 587.138,
+      "stages": [
+        {
+          "stage": "credential_read_begin",
+          "wallMs": 0.168,
+          "processCpuMs": 0.152
+        },
+        {
+          "stage": "credential_read_done",
+          "wallMs": 0.274,
+          "processCpuMs": 0.259
+        },
+        {
+          "stage": "pin_verify_begin",
+          "wallMs": 0.281,
+          "processCpuMs": 0.268
+        },
+        {
+          "stage": "pin_verify_done",
+          "wallMs": 0.381,
+          "processCpuMs": 0.363
+        },
+        {
+          "stage": "pin_upgrade_begin",
+          "wallMs": 0.386,
+          "processCpuMs": 0.369
+        },
+        {
+          "stage": "pin_upgrade_done",
+          "wallMs": 660.989,
+          "processCpuMs": 586.052
+        },
+        {
+          "stage": "session_create_begin",
+          "wallMs": 661.75,
+          "processCpuMs": 586.785
+        },
+        {
+          "stage": "session_create_done",
+          "wallMs": 661.961,
+          "processCpuMs": 586.998
+        },
+        {
+          "stage": "session_validate_done",
+          "wallMs": 662.017,
+          "processCpuMs": 587.054
+        }
+      ],
+      "intervals": [
+        {
+          "label": "D1_credentials",
+          "wallMs": 0.106,
+          "processCpuMs": 0.107
+        },
+        {
+          "label": "PIN_verify",
+          "wallMs": 0.1,
+          "processCpuMs": 0.095
+        },
+        {
+          "label": "PIN_upgrade",
+          "wallMs": 660.603,
+          "processCpuMs": 585.683
+        },
+        {
+          "label": "session_create",
+          "wallMs": 0.211,
+          "processCpuMs": 0.213
+        },
+        {
+          "label": "session_revalidate",
+          "wallMs": 0.056,
+          "processCpuMs": 0.056
+        }
+      ]
+    },
+    {
+      "mode": "fallback-pbkdf2-verify",
+      "outcome": "authenticated",
+      "wallMs": 659.885,
+      "processCpuMs": 586.068,
+      "stages": [
+        {
+          "stage": "credential_read_begin",
+          "wallMs": 0.101,
+          "processCpuMs": 0.094
+        },
+        {
+          "stage": "credential_read_done",
+          "wallMs": 0.184,
+          "processCpuMs": 0.178
+        },
+        {
+          "stage": "pin_verify_begin",
+          "wallMs": 0.189,
+          "processCpuMs": 0.183
+        },
+        {
+          "stage": "pin_verify_done",
+          "wallMs": 659.079,
+          "processCpuMs": 585.18
+        },
+        {
+          "stage": "session_create_begin",
+          "wallMs": 659.455,
+          "processCpuMs": 585.648
+        },
+        {
+          "stage": "session_create_done",
+          "wallMs": 659.732,
+          "processCpuMs": 585.925
+        },
+        {
+          "stage": "session_validate_done",
+          "wallMs": 659.792,
+          "processCpuMs": 585.986
+        }
+      ],
+      "intervals": [
+        {
+          "label": "D1_credentials",
+          "wallMs": 0.083,
+          "processCpuMs": 0.084
+        },
+        {
+          "label": "PIN_verify",
+          "wallMs": 658.89,
+          "processCpuMs": 584.997
+        },
+        {
+          "label": "session_create",
+          "wallMs": 0.277,
+          "processCpuMs": 0.277
+        },
+        {
+          "label": "session_revalidate",
+          "wallMs": 0.06,
+          "processCpuMs": 0.061
+        }
+      ]
+    },
+    {
+      "mode": "fallback-pbkdf2-verify",
+      "outcome": "authenticated",
+      "wallMs": 652.446,
+      "processCpuMs": 578,
+      "stages": [
+        {
+          "stage": "credential_read_begin",
+          "wallMs": 0.117,
+          "processCpuMs": 0.11
+        },
+        {
+          "stage": "credential_read_done",
+          "wallMs": 0.202,
+          "processCpuMs": 0.196
+        },
+        {
+          "stage": "pin_verify_begin",
+          "wallMs": 0.208,
+          "processCpuMs": 0.202
+        },
+        {
+          "stage": "pin_verify_done",
+          "wallMs": 651.777,
+          "processCpuMs": 577.193
+        },
+        {
+          "stage": "session_create_begin",
+          "wallMs": 652.042,
+          "processCpuMs": 577.606
+        },
+        {
+          "stage": "session_create_done",
+          "wallMs": 652.29,
+          "processCpuMs": 577.796
+        },
+        {
+          "stage": "session_validate_done",
+          "wallMs": 652.351,
+          "processCpuMs": 577.917
+        }
+      ],
+      "intervals": [
+        {
+          "label": "D1_credentials",
+          "wallMs": 0.085,
+          "processCpuMs": 0.086
+        },
+        {
+          "label": "PIN_verify",
+          "wallMs": 651.569,
+          "processCpuMs": 576.991
+        },
+        {
+          "label": "session_create",
+          "wallMs": 0.248,
+          "processCpuMs": 0.19
+        },
+        {
+          "label": "session_revalidate",
+          "wallMs": 0.061,
+          "processCpuMs": 0.121
+        }
+      ]
+    },
+    {
+      "mode": "fallback-pbkdf2-verify",
+      "outcome": "authenticated",
+      "wallMs": 645.941,
+      "processCpuMs": 573.301,
+      "stages": [
+        {
+          "stage": "credential_read_begin",
+          "wallMs": 0.091,
+          "processCpuMs": 0.1
+        },
+        {
+          "stage": "credential_read_done",
+          "wallMs": 0.238,
+          "processCpuMs": 0.322
+        },
+        {
+          "stage": "pin_verify_begin",
+          "wallMs": 0.244,
+          "processCpuMs": 0.331
+        },
+        {
+          "stage": "pin_verify_done",
+          "wallMs": 645.247,
+          "processCpuMs": 572.53
+        },
+        {
+          "stage": "session_create_begin",
+          "wallMs": 645.555,
+          "processCpuMs": 572.93
+        },
+        {
+          "stage": "session_create_done",
+          "wallMs": 645.741,
+          "processCpuMs": 573.117
+        },
+        {
+          "stage": "session_validate_done",
+          "wallMs": 645.803,
+          "processCpuMs": 573.18
+        }
+      ],
+      "intervals": [
+        {
+          "label": "D1_credentials",
+          "wallMs": 0.147,
+          "processCpuMs": 0.222
+        },
+        {
+          "label": "PIN_verify",
+          "wallMs": 645.003,
+          "processCpuMs": 572.199
+        },
+        {
+          "label": "session_create",
+          "wallMs": 0.186,
+          "processCpuMs": 0.187
+        },
+        {
+          "label": "session_revalidate",
+          "wallMs": 0.062,
+          "processCpuMs": 0.063
+        }
+      ]
+    },
+    {
+      "mode": "wrong-legacy-pin",
+      "outcome": "E_AUTH",
+      "wallMs": 0.549,
+      "processCpuMs": 0.537,
+      "stages": [
+        {
+          "stage": "credential_read_begin",
+          "wallMs": 0.135,
+          "processCpuMs": 0.134
+        },
+        {
+          "stage": "credential_read_done",
+          "wallMs": 0.231,
+          "processCpuMs": 0.23
+        },
+        {
+          "stage": "pin_verify_begin",
+          "wallMs": 0.237,
+          "processCpuMs": 0.237
+        }
+      ],
+      "intervals": [
+        {
+          "label": "D1_credentials",
+          "wallMs": 0.096,
+          "processCpuMs": 0.096
+        }
+      ]
+    },
+    {
+      "mode": "wrong-legacy-pin",
+      "outcome": "E_AUTH",
+      "wallMs": 0.362,
+      "processCpuMs": 0.309,
+      "stages": [
+        {
+          "stage": "credential_read_begin",
+          "wallMs": 0.115,
+          "processCpuMs": 0.107
+        },
+        {
+          "stage": "credential_read_done",
+          "wallMs": 0.198,
+          "processCpuMs": 0.19
+        },
+        {
+          "stage": "pin_verify_begin",
+          "wallMs": 0.204,
+          "processCpuMs": 0.197
+        }
+      ],
+      "intervals": [
+        {
+          "label": "D1_credentials",
+          "wallMs": 0.083,
+          "processCpuMs": 0.083
+        }
+      ]
+    },
+    {
+      "mode": "wrong-legacy-pin",
+      "outcome": "E_AUTH",
+      "wallMs": 0.269,
+      "processCpuMs": 0.252,
+      "stages": [
+        {
+          "stage": "credential_read_begin",
+          "wallMs": 0.081,
+          "processCpuMs": 0.073
+        },
+        {
+          "stage": "credential_read_done",
+          "wallMs": 0.153,
+          "processCpuMs": 0.146
+        },
+        {
+          "stage": "pin_verify_begin",
+          "wallMs": 0.158,
+          "processCpuMs": 0.152
+        }
+      ],
+      "intervals": [
+        {
+          "label": "D1_credentials",
+          "wallMs": 0.072,
+          "processCpuMs": 0.073
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "process.cpuUsage covers the Node process/native threads; not Cloudflare billed CPU",
+    "SQLite timings are not remote D1 network latency",
+    "No tokens, credential hashes or PIN values are stored"
+  ]
+}

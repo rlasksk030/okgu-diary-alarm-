@@ -41,5 +41,24 @@
     "url": "https://raw.githubusercontent.com/chromium/chromium/main/docs/linux/cert_management.md",
     "verifiedAt": "2026-10-02",
     "confirmed": "Use NSS database and trust supplied root CA; Chromium 146+ default changes with existing ~/.pki/nssdb compatibility; actual trial verified with TLS enabled after importing environment-provided public root CA."
+  },
+  "freeKdfVerification": {
+    "verifiedAt": "2026-10-03 (Asia/Seoul)",
+    "retrieval": "Official HTTPS through configured proxy; TLS verification retained",
+    "urls": [
+      "https://developers.cloudflare.com/workers/platform/limits/",
+      "https://developers.cloudflare.com/workers/platform/pricing/",
+      "https://developers.cloudflare.com/durable-objects/platform/limits/",
+      "https://developers.cloudflare.com/durable-objects/platform/pricing/",
+      "https://developers.cloudflare.com/durable-objects/get-started/",
+      "https://developers.cloudflare.com/workers/observability/logs/real-time-logs/"
+    ],
+    "confirmed": [
+      "Durable Objects available on Workers Free only with SQLite storage backend",
+      "Durable Object CPU default30s; ordinary Workers Free10ms",
+      "DO Free100000 requests/day,13000 GB-s/day,SQL storage5GB; limit excess stops operations without automatic Paid activation",
+      "Actual private DO KDF and public Worker CPU/wall split verified by ephemeral sanitized tail",
+      "Paid minimum$5/month remains unactivated; CPU allowance increase alone does not guarantee faster KDF"
+    ]
   }
 }

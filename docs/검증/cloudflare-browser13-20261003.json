@@ -1,0 +1,39 @@
+{
+  "time": "2026-10-02T16:35:55.637Z",
+  "environment": "deployed Cloudflare trial",
+  "concurrentUsers": 13,
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "photo": "synthetic 180x180 ~97KB PNG; existing browser compression + binary multipart original/thumbnail",
+  "network": "no artificial throttling",
+  "failures": [],
+  "summary": {
+    "firstVisit": {
+      "n": 13,
+      "p50": 1340,
+      "p95": 1452
+    },
+    "login": {
+      "n": 13,
+      "p50": 3552,
+      "p95": 5594
+    },
+    "revisit": {
+      "n": 13,
+      "p50": 292,
+      "p95": 339
+    },
+    "textSave": {
+      "n": 13,
+      "p50": 520,
+      "p95": 725
+    },
+    "photoSave": {
+      "n": 13,
+      "p50": 2687,
+      "p95": 2804
+    }
+  }
+}

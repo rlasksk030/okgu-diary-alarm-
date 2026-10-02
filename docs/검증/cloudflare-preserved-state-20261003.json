@@ -1,0 +1,33 @@
+{
+  "at": "2026-10-02T16:38:11.983Z",
+  "origin": "https://okgu-diary-trial.rlasksk030.workers.dev",
+  "bindings": [
+    {
+      "name": "LOGIN_KDF",
+      "type": "durable_object_namespace",
+      "className": "PinKdf"
+    },
+    {
+      "name": "PUSH_MODE",
+      "type": "plain_text",
+      "value": "disabled"
+    },
+    {
+      "name": "TEST_MODE",
+      "type": "plain_text",
+      "value": "synthetic-trial"
+    }
+  ],
+  "cronCount": 0,
+  "r2ManagedPublicEnabled": false,
+  "r2CustomDomainCount": 0,
+  "counts": {
+    "accounts": 19,
+    "activeDiaries": 129
+  },
+  "staticApiUsesWindowOrigin": true,
+  "staticLoopback": false,
+  "studentDataImported": false,
+  "livePushSent": false,
+  "workersPaidActivated": false
+}

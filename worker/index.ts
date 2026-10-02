@@ -1,3 +1,4 @@
+export {PinKdf} from './pin-kdf';
 import {AppError,type Env} from './types';
 import {session,login,digest} from './auth';
 import {READS,read} from './reads';

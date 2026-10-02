@@ -1,10 +1,14 @@
 # 옥구 다이어리 — Cloudflare 이전 시험 브랜치
 
-기존 GitHub Pages 화면을 보존하면서 Apps Script 서버 호출을 Workers + D1 + 비공개 R2로 옮기는 작업입니다. 운영 main은 변경하지 않습니다. Supabase를 사용하거나 수정하지 않습니다. 가상 자료로 실제 시험 Worker/D1/비공개 R2 배포를 완료했습니다. 현재 Workers Free CPU1102로 로그인이 막히며 Workers Paid 전환은 사용자 결정에 따라 보류합니다. 운영 전환은 하지 않았습니다.
+기존 GitHub Pages 화면을 보존하면서 Apps Script 서버 호출을 Workers + D1 + 비공개 R2로 옮기는 작업입니다. 운영 main·학생용 주소·Supabase는 변경하지 않습니다.
 
-시험 화면: https://okgu-diary-trial.rlasksk030.workers.dev/okgu-diary-alarm-/ (현재 로그인 불가). 실제 화면 로딩3회 467/216/250ms이며 로그인·저장·13명 실측은 미완료입니다. 최신 로컬 검증36tests/16browser 통과는 실제 서비스 성공/속도와 구분합니다.
+2026-10-03 최신: **유료 전환 없이 로그인1102 해결**, 같은600,000회 PIN 계산을 무료 비공개 Durable Object에 분리했습니다. 계정·자료는 D1에 유지하고 계산 객체에는 저장하지 않습니다. 실제 원격 API 기능15개/화면16개, 로컬46tests/16browser 통과. 가상13명 API/browser 실패0이지만 로그인·목록·글 저장의 API p95 목표는 미달했습니다.
 
-상세 현황: [작업 인계](2026-10-02_옥구다이어리_작업인계.md), [Cloudflare 입력값·비용](docs/Cloudflare_시험배포.md), [기능 대응표](docs/기능대응표.md).
+시험 화면: https://okgu-diary-trial.rlasksk030.workers.dev/okgu-diary-alarm-/ — 가상 `시험학생01~13` 또는 `가상교사`, PIN `0042`. 현재 로그인 가능합니다. 실제 자료/푸시는 사용하지 않습니다.
+
+실제13명 API p95: 로그인4513ms·재접속142ms·목록706ms·글791ms·사진 업로드+저장1345ms. 별도13개 Chromium 화면 p95: 최초1452ms·로그인5594ms·재접속339ms·글725ms·사진2804ms. Codex 클라우드/proxy 측정으로 학교망·실물 기기·cold Worker 결과가 아닙니다.
+
+상세: [CPU 원인·무료 구성·실측·비용](docs/로그인_CPU_무료해결_2026-10-03.md), [작업 인계](2026-10-02_옥구다이어리_작업인계.md), [배포 입력값](docs/Cloudflare_시험배포.md), [기능 대응표](docs/기능대응표.md).
 
 ## 다른 Codex 환경에서 재현
 
@@ -37,6 +41,6 @@ Chromium은 `/usr/bin/chromium`을 사용합니다. 경로가 다르면 `CHROME_
 
 실제 시험 배포는 [인증 안내](docs/Cloudflare_로그인과시험실행.md)대로 Codex 환경에 Cloudflare 인증을 설정한 뒤 `npm run trial:launch`, 측정은 `npm run trial:measure`입니다. 이름이 고정된 독립 시험 D1·비공개 R2만 생성/사용하고 원격 DB의 가상 계정 여부를 먼저 검사합니다. 과금 활성화는 자동 처리하지 않습니다. `npm run deploy:trial`은 이미 준비된 시험 리소스를 사용하는 개별 배포 명령입니다. Cloudflare 화면/인증이 없는 동안도 로컬 개발은 계속 가능합니다. GitHub Pages 운영 화면을 이 시험 bundle로 교체하지 마십시오.
 
-자료 이전·격리 복원·신규 기록 보존 절차는 [자료 이전과 복귀](docs/자료이전_전환_복귀.md)에 있습니다. 성능 검사는 다른 suite와 동시에 실행하지 않습니다. 정적 bundle 재생성 후 기존 서버가 asset 500을 반환하면 이 작업의 서버만 재시작합니다.
+자료 이전·격리 복원·신규 기록 보존 절차는 [자료 이전과 복귀](docs/자료이전_전환_복귀.md)에 있습니다. 성능 검사는 다른 suite와 동시에 실행하지 않습니다. 정적 bundle 재생성·Wrangler 설정 reload 동안 suite를 실행하지 않습니다. 기존 서버가 취소/asset500을 반환하면 이 작업의 서버만 재시작합니다. `deploy:trial`은 항상 시험 bundle을 다시 만들고 원격 측정은 loopback API 설정을 거부합니다.
 
-로그인 없이 실제 시험 화면만 확인하려면 `OKGU_TRIAL_API_ORIGIN=https://okgu-diary-trial.rlasksk030.workers.dev npm run test:visit`를 사용합니다. Chromium proxy CA 신뢰와 TLS 검증을 유지하는 재현 절차는 [인증·시험 안내](docs/Cloudflare_로그인과시험실행.md)에 있습니다. 현재 유료 전환 보류 상태에서는 `trial:measure`를 반복하지 않습니다.
+로그인 없이 실제 시험 화면만 확인하려면 `OKGU_TRIAL_API_ORIGIN=https://okgu-diary-trial.rlasksk030.workers.dev npm run test:visit`를 사용합니다. Chromium proxy CA 신뢰와 TLS 검증을 유지하는 재현 절차는 [인증·시험 안내](docs/Cloudflare_로그인과시험실행.md)에 있습니다. Paid 보류는 유지하지만 무료 DO 경로가 검증돼 `trial:measure`를 수행할 수 있습니다. 성능 목표 미달을 성공으로 바꾸지 않습니다.
