@@ -20,8 +20,26 @@
     "retrieval": "Direct HTTPS through the configured session proxy, after network settings were applied; normal TLS verification",
     "urls": [
       "https://developers.cloudflare.com/r2/get-started/",
-      "https://developers.cloudflare.com/r2/pricing/"
+      "https://developers.cloudflare.com/r2/pricing/",
+      "https://developers.cloudflare.com/workers/platform/pricing/",
+      "https://developers.cloudflare.com/workers/runtime-apis/web-crypto/",
+      "https://developers.cloudflare.com/workers/runtime-apis/nodejs/crypto/"
     ],
-    "confirmed": "R2 requires a dashboard checkout subscription; free quotas and overage unit prices unchanged"
+    "confirmed": "R2 subscription/free quotas and overage prices; Workers Free 10ms CPU and Paid $5 base; WebCrypto/Node crypto API support. Native PBKDF2 iteration cap confirmed separately from official workerd source and actual trial error."
+  },
+  "runtimeSource": {
+    "repository": "https://github.com/cloudflare/workerd",
+    "commit": "51a48a5bb7863fbeab791358bee8dff22c3ce83f",
+    "files": [
+      "src/workerd/io/limit-enforcer.h",
+      "src/workerd/api/crypto/impl.c++",
+      "src/workerd/api/node/crypto.c++"
+    ],
+    "confirmed": "Default PBKDF2 iteration cap 100000; native WebCrypto and Node paths check the same cap; actual trial returned iteration-limit diagnostic."
+  },
+  "browserTrustSource": {
+    "url": "https://raw.githubusercontent.com/chromium/chromium/main/docs/linux/cert_management.md",
+    "verifiedAt": "2026-10-02",
+    "confirmed": "Use NSS database and trust supplied root CA; Chromium 146+ default changes with existing ~/.pki/nssdb compatibility; actual trial verified with TLS enabled after importing environment-provided public root CA."
   }
 }

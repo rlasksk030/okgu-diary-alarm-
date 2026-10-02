@@ -1,6 +1,8 @@
 # 옥구 다이어리 — Cloudflare 이전 시험 브랜치
 
-기존 GitHub Pages 화면을 보존하면서 Apps Script 서버 호출을 Workers + D1 + 비공개 R2로 옮기는 작업입니다. 운영 main은 변경하지 않습니다. Supabase를 사용하거나 수정하지 않습니다. 아직 실제 Cloudflare 시험 배포/운영 전환은 완료하지 않았습니다.
+기존 GitHub Pages 화면을 보존하면서 Apps Script 서버 호출을 Workers + D1 + 비공개 R2로 옮기는 작업입니다. 운영 main은 변경하지 않습니다. Supabase를 사용하거나 수정하지 않습니다. 가상 자료로 실제 시험 Worker/D1/비공개 R2 배포를 완료했습니다. 현재 Workers Free CPU1102로 로그인이 막히며 Workers Paid 전환은 사용자 결정에 따라 보류합니다. 운영 전환은 하지 않았습니다.
+
+시험 화면: https://okgu-diary-trial.rlasksk030.workers.dev/okgu-diary-alarm-/ (현재 로그인 불가). 실제 화면 로딩3회 467/216/250ms이며 로그인·저장·13명 실측은 미완료입니다. 최신 로컬 검증36tests/16browser 통과는 실제 서비스 성공/속도와 구분합니다.
 
 상세 현황: [작업 인계](2026-10-02_옥구다이어리_작업인계.md), [Cloudflare 입력값·비용](docs/Cloudflare_시험배포.md), [기능 대응표](docs/기능대응표.md).
 
@@ -36,3 +38,5 @@ Chromium은 `/usr/bin/chromium`을 사용합니다. 경로가 다르면 `CHROME_
 실제 시험 배포는 [인증 안내](docs/Cloudflare_로그인과시험실행.md)대로 Codex 환경에 Cloudflare 인증을 설정한 뒤 `npm run trial:launch`, 측정은 `npm run trial:measure`입니다. 이름이 고정된 독립 시험 D1·비공개 R2만 생성/사용하고 원격 DB의 가상 계정 여부를 먼저 검사합니다. 과금 활성화는 자동 처리하지 않습니다. `npm run deploy:trial`은 이미 준비된 시험 리소스를 사용하는 개별 배포 명령입니다. Cloudflare 화면/인증이 없는 동안도 로컬 개발은 계속 가능합니다. GitHub Pages 운영 화면을 이 시험 bundle로 교체하지 마십시오.
 
 자료 이전·격리 복원·신규 기록 보존 절차는 [자료 이전과 복귀](docs/자료이전_전환_복귀.md)에 있습니다. 성능 검사는 다른 suite와 동시에 실행하지 않습니다. 정적 bundle 재생성 후 기존 서버가 asset 500을 반환하면 이 작업의 서버만 재시작합니다.
+
+로그인 없이 실제 시험 화면만 확인하려면 `OKGU_TRIAL_API_ORIGIN=https://okgu-diary-trial.rlasksk030.workers.dev npm run test:visit`를 사용합니다. Chromium proxy CA 신뢰와 TLS 검증을 유지하는 재현 절차는 [인증·시험 안내](docs/Cloudflare_로그인과시험실행.md)에 있습니다. 현재 유료 전환 보류 상태에서는 `trial:measure`를 반복하지 않습니다.

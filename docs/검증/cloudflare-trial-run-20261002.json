@@ -1,0 +1,16 @@
+{
+  "time": "2026-10-02T09:33:24.438Z",
+  "origin": "https://okgu-diary-trial.rlasksk030.workers.dev",
+  "appURL": "https://okgu-diary-trial.rlasksk030.workers.dev/okgu-diary-alarm-/",
+  "environment": "actual Cloudflare HTTPS trial",
+  "measurementLocation": "Codex cloud through its configured HTTPS proxy; not a student device network",
+  "cfRay": "a442b48cad55a8aa-ORD",
+  "steps": [
+    {
+      "script": "test",
+      "exitCode": 1,
+      "signal": null
+    }
+  ],
+  "allChecksPassed": false
+}

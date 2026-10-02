@@ -1,0 +1,30 @@
+{
+  "at": "2026-10-02T10:13:48.578Z",
+  "origin": "https://okgu-diary-trial.rlasksk030.workers.dev",
+  "worker": "okgu-diary-trial",
+  "database": "okgu-diary-trial",
+  "bucket": "okgu-diary-trial-private",
+  "counts": {
+    "accounts": 18,
+    "diaries": 4,
+    "diaryComments": 1,
+    "boardComments": 2
+  },
+  "r2ManagedPublicEnabled": false,
+  "r2CustomDomainCount": 0,
+  "pushMode": "disabled",
+  "testMode": "synthetic-trial",
+  "health": {
+    "ok": true,
+    "runtime": "Cloudflare Workers",
+    "storage": "D1 + private R2",
+    "push": "disabled",
+    "version": "cf-20261002"
+  },
+  "workersPaid": "not activated; user chose hold",
+  "login": "blocked by Free CPU 1102",
+  "studentDataImported": false,
+  "livePushSent": false,
+  "operatingMainChanged": false,
+  "cronCount": 0
+}

@@ -1,20 +1,33 @@
 # Cloudflare 로그인·인증과 가상 시험 실행 — 2026-10-02
 
-현재 작업: `rlasksk030/okgu-diary-alarm-`, `codex/2026-10-02-okgu-speed`. 시작 checkpoint는 `4ebf92c`이며 원격에서 이후 커밋이 없음을 확인했습니다. 실행 위치는 Codex 클라우드입니다. 실제 Cloudflare 시험 URL·배포 성능은 아직 없습니다. 인증/API 접근과 실제 시험 D1 생성·마이그레이션은 성공했고, R2 활성화 동의는 받았고, 사용자의 Cloudflare checkout 완료가 남아 있습니다.
+작업 저장소 `rlasksk030/okgu-diary-alarm-`, 브랜치 `codex/2026-10-02-okgu-speed`. 기존4ebf92c → 배포 준비39b6258 → 인증/D1/R2 승인 checkpoint9c21c4f 이후 실제 배포까지 이어갔습니다. 실행 위치는 **Codex 클라우드**입니다. 운영 main·GitHub Pages·실제 학생 자료·실제 푸시·Supabase·별도 하루의 행간 저장소는 변경하지 않습니다.
 
-## 최신 상태: R2 활성화 동의 완료·사용자 checkout 대기
+## 최신 상태: 시험 배포 완료, Workers Paid 전환 보류
 
-2026-10-02 **18:15 KST** 확인: token active·Account ID/API 접근 성공, 시험 D1 `okgu-diary-trial` 생성 및 migration 0001~0004 적용 성공(업무 테이블23개, accounts0). 실제 계정은 아직 seed하지 않았습니다. Worker build/dry-run도 통과했습니다. [실제 API/D1 확인 결과](검증/cloudflare-stage-readiness-20261002.json)에 비밀값 없이 보존했습니다.
+2026-10-02 **19:13 KST** 기준 시험 주소:
 
-R2 조회는 HTTP403 / code10042, **Please enable R2 through the Cloudflare Dashboard**로 중단됐습니다. 실제 token/API 연결 문제와 다르며 token 재발급은 필요하지 않습니다. 현재 R2 bucket/Worker 배포/시험 URL/실제 속도는 미완료입니다. 아래 예전 인증 설정은 새 환경에서 재현할 때 사용합니다.
+**https://okgu-diary-trial.rlasksk030.workers.dev/okgu-diary-alarm-/**
 
-사용자 다음 클릭은 Cloudflare **Storage & databases → R2 → Overview**의 checkout(구독 등록)입니다. 현재 공식 get-started 문서에서 이 경로와 R2 subscription 필요 조건을 직접 HTTPS로 확인했습니다. 마지막 결제 버튼의 문구/금액은 계정 화면을 직접 볼 수 없어 확정하지 않습니다. 결제수단 등록 및 과금 가능 구독의 활성화는 아래 비용을 검토하고 **사용자가 동의한 뒤** 진행합니다. Codex는 구독/결제를 활성화하지 않았습니다.
+실제 로그인 화면과 health(Workers / D1 + private R2 / push disabled)를 확인했습니다. 사용자는 R2 활성화를 승인하고 checkout 완료 화면을 제공했습니다. 비공개 Standard R2 `okgu-diary-trial-private` 생성 및 가상 사진 seed 성공, D1 `okgu-diary-trial` 마이그레이션0001~0004/가상 계정18/일기4/일기댓글1/게시판댓글2. Public development URL disabled, custom domain0, cron 제거, PUSH_MODE disabled입니다. [실제 보존 상태](검증/cloudflare-preserved-state-20261002.json).
 
-사용자는 R2 결제수단 등록 및 활성화에 동의했습니다. Cloudflare checkout은 사용자가 직접 완료해야 하며 아직 완료됐다고 확인하지 않았습니다. 바로 열기: https://dash.cloudflare.com/?to=/:account/r2/overview
+**현재 로그인은 사용할 수 없습니다.** native PBKDF2가600,000회를 허용하지 않아 동일 강도 대체 경로를 적용했으나, 실제 로그인 요청이 Workers Free CPU 한도10ms에서 **HTTP503 / CPU Error1102**로 실패했습니다. [실패 증거](검증/cloudflare-login-readiness-20261002.json)의2308ms는 성공한 로그인 속도가 아닙니다. 13명 부하를 반복하지 않았습니다.
 
-R2 기본 월 구독료 $0, 이번 작은 가상 시험은 무료 할당 내 사용료 $0 예상입니다. 무료10GB-month·Class A100만·B1천만/월, 초과 저장$0.015/GB-month·A$4.50/백만·B$0.36/백만 및 요금 단위 올림이 적용됩니다. 무료 할당은 계정 전체와 공유하므로 기존 사용량이 있으면 시험에도 추가 과금이 생길 수 있습니다. Workers Paid 기본 $5/월은 R2 승인에 포함하지 않으며 실제 필요가 확인되면 별도 승인받습니다.
+Workers Paid 기본$5/월 전환을 제안했고 사용자는 **보류 — 현재 상태 보존**을 선택했습니다. Paid 활성화·결제 설정 변경은 수행하지 않습니다. R2 승인과 Workers Paid 승인은 별개입니다. 지금 사용자가 추가로 눌러야 할 버튼은 없습니다. Cloudflare Set up your application 화면은 닫아도 되며 현재 CLI 배포는 유지됩니다.
 
-R2 활성화 완료 후 바로 `npm run trial:launch`를 재실행합니다. 이미 생성한 시험 D1을 찾아 metadata를 검사하고 사용하므로 중복 D1을 만들지 않습니다. private R2 생성/검사 → Worker 배포 → 가상 seed → 실제 URL/health 확인 → `npm run trial:measure` 순서입니다.
+## 실제 검증 결과와 미완료
+
+| 항목 | 실제 결과 |
+|---|---|
+| 원격 화면3회 새 context / DOMContentLoaded | 467/216/250ms, 중앙값250ms·최대467ms, 모두HTTP200·login 화면 표시 |
+| 원격 가상 로그인 | 실패503/1102, token 없음. 성공 시간/p95 미측정 |
+| 원격 로그인·재접속·목록·글·사진 저장 및13명 동시 사용 | 인증 실패로 후속 검사 중단, 미검증/미측정 |
+| 최초 원격 기능 harness | 모델/도구18개 통과; API15개 공통 로그인 beforeHook500 실패; 이후 단계 중단 |
+| 수정 후 로컬 check / tests / browser | TypeScript 통과,36/36 tests·16 browser 통과. 실제 서비스 검증과 구분 |
+| 사진 seed | 가상 파일 checksum 확인 및 private R2 CLI put 성공. 앱의 인증 업로드 측정이 아님 |
+
+화면 측정은 Codex 클라우드 Linux Chromium에서 설정된 proxy/TLS 검증을 유지해 순차 실행한3개 새 context(390×844 viewport)입니다. 쓰기 요청은 차단했고 로그인하지 않았습니다. 첫 응답 cache MISS, 이후 HIT; cold Worker/실물 모바일/학교망/13명 동시 성능으로 해석하지 않습니다. [화면 원시 결과](검증/cloudflare-first-visit-20261002.json), [기능 harness 실패](검증/cloudflare-trial-run-20261002.json)를 보존합니다.
+
+가상 학생 **시험학생01~13**, 교사 **가상교사**, PIN **0042**(앞자리0 포함)는 원격 seed되어 있으나 **현재 Free 환경에서는 로그인 불가**입니다. PIN을 바꾸거나 해시/권한 검사를 낮추지 마십시오. 실제 학생 인증값은 아닙니다.
 
 ## 사용자가 한 번에 할 인증 설정 (이미 완료; 새 환경 재현용)
 
@@ -39,9 +52,20 @@ Cloudflare 계정 화면을 직접 열어 확인하지는 못했습니다. 아�
 
 현재 열어 둔 **Set up your application**의 Deploy는 CLI 시험 배포의 선행조건이 아닙니다. 화면을 닫아도 됩니다. Git 자동배포를 연결한다면 [시험 배포 입력값](Cloudflare_시험배포.md)의 브랜치를 반드시 선택합니다. 이 작업은 Cloudflare 실제 branch control을 읽거나 바꾼 것이 아니며, main 연결이 해제되었다고 확인하지 않았습니다. GitHub Pages/운영 main 설정을 수정하지 않습니다.
 
-## Codex가 자동 처리할 D1·R2와 배포
+## 배포 도구와 새 Codex 환경의 재현
 
-인증/접속이 준비되면 아래 명령을 순서대로 실행합니다. 비밀값을 명령행에 넣지 않습니다.
+기존 CLI 배포는 이미 완료됐습니다. 현재 상태 보존 요청에 따라 과금 전환이나 재배포가 필요하지 않습니다. 새 환경에서 로컬 검증은 Cloudflare와 독립적으로 실행할 수 있습니다.
+
+```sh
+npm ci --cache /tmp/okgu-npm-cache --no-audit --no-fund
+npm run build:local
+npm run seed
+npm start
+```
+
+다른 터미널에서 `npm run check`, `npm test`, `npm run test:browser`. Node24·Linux Chromium이 필요합니다. 최신36/36 및16개 통과는 로컬 synthetic D1/R2 결과입니다. 생성 파일/프로세스/.local DB는 Git에 없으므로 새 환경에서는 재현합니다. 사용자 PC를 끄더라도 GitHub 소스는 보존되지만 Codex 프로세스의 무기한 실행은 보장하지 않습니다.
+
+배포 도구의 재현 절차(승인된 변경을 재개할 때만):
 
 ```sh
 npm run trial:provision -- --plan
@@ -49,37 +73,40 @@ npm run trial:launch
 npm run trial:measure
 ```
 
-- Worker: **okgu-diary-trial**, D1: **okgu-diary-trial**, R2 Standard: **okgu-diary-trial-private**.
-- `trial:launch`는 시험 브랜치와 token active 확인 → 같은 이름의 D1 조회/없으면 생성 → DB 이름·기존 계정 metadata가 가상 fixture와 일치하는지 검사 → R2 조회/없으면 생성 → Public development URL와 custom domain이 없는지 검사 → build → D1 migration → Worker deploy → 가상 seed → 실제 workers.dev URL/health 확인 순서입니다.
-- 재실행은 같은 이름의 리소스를 찾아 사용하며 운영 이름/가상 계정 metadata 불일치/공개 버킷을 거부합니다. private 버킷 검사가 실패하면 공개 설정을 임의로 바꾸지 않고 멈춥니다. 계정·리소스 생성 API는 mock으로 검증했으며 실제 API 응답과 배포는 인증 후 확인해야 합니다.
-- 계정 전용 workers.dev subdomain이 미설정이면 실제 오류/설정 화면을 확인한 뒤 필요한 클릭만 추가 안내합니다. 확인 전 시험 hostname을 추측해서 보고하지 않습니다.
-- 로컬 연결 metadata는 `.local/trial-resources.json`, 실제 URL/health 확인 결과는 `.local/trial-deployment.json`에 저장합니다. 둘 다 Git 제외이며 새 환경에서는 인증 후 리소스를 다시 조회할 수 있습니다. 비밀 토큰은 파일에 저장하지 않습니다.
-- 실제 시험 cron은 제거되고 `PUSH_MODE=disabled`입니다. 실제 학생 자료/학생 구독은 입력하지 않습니다.
+- 고정 Worker/D1 `okgu-diary-trial`, R2 `okgu-diary-trial-private`. 같은 이름의 리소스를 재사용하고 계정 metadata가 가상 fixture와 일치하는지 확인합니다. 새 환경에서 .local metadata가 없어도 API 조회로 복원할 수 있습니다.
+- `trial:launch`: branch/token/provenance/private 버킷 검사 → build/migration/deploy → 가상 seed → 실제 workers.dev subdomain/health 확인. trial branch만 허용하고 main/운영 Pages origin을 거부합니다. PUSH_MODE disabled, TEST_MODE synthetic-trial, cron 제거. Billing API를 호출하지 않습니다.
+- 작은 가상 SQL은 D1 query API를 사용합니다. 원격 scope에는 `--persist-to`를 넣지 않습니다.80KB 초과 seed는 검토 전 차단하며 대량 실제 이전 도구로 사용하지 않습니다. Wrangler file import의 임시 서명 staging host를 임의로 허용하지 않습니다.
+- `.local/trial-resources.json`, `.local/trial-deployment.json`, `.wrangler-trial.json`은 Git 제외입니다. Cloudflare token/account는 안전한 환경 설정으로 제공합니다. signed URL·비밀값·학생 자료를 로그에 넣지 않습니다.
+- 현재 `trial:measure`는 로그인 CPU 한도로 통과하지 못하므로 반복 실행하지 않습니다. CPU 문제를 해결할 승인된 경로가 준비되면 실제 HTTPS health → API 회귀 → browser 회귀 → API13 → profile → browser13을 순차 실행합니다. 기능/인증 실패는 후속 단계 중단, p95 목표 미달은 실패로 남깁니다. 부분 성공을 전체 성공으로 보고하지 않습니다.
 
-배포 후 확인할 Cloudflare 메뉴: **Storage & databases → D1 → okgu-diary-trial**, **R2 Object Storage → okgu-diary-trial-private → Settings**. R2의 **Public Development URL**은 Disabled, **Custom Domains**는 연결 없음이어야 합니다. 사용자가 직접 생성할 필요가 있는 경우 D1의 **Create Database**에는 `okgu-diary-trial`, R2의 **Create bucket**에는 `okgu-diary-trial-private`, **Storage class**에는 Standard를 사용합니다. 결제수단/구독 동의가 요구되면 그 단계에서 멈춥니다.
+배포된 화면만 읽기 전용 확인(로그인·과금 변경 없음):
 
-## 가상 계정과 실제 측정
+```sh
+OKGU_TRIAL_API_ORIGIN=https://okgu-diary-trial.rlasksk030.workers.dev npm run test:visit
+```
 
-URL은 Cloudflare API에서 실제 계정 subdomain을 확인하고 `/api/health` 요청이 성공한 뒤에만 제공합니다. 화면 경로는 해당 시험 Worker의 `/okgu-diary-alarm-/`입니다. 가상 학생은 **시험학생01~시험학생13**, 교사는 **가상교사**, PIN은 **0042**(문자열 앞자리 0 포함)입니다. 현재는 해당 원격 계정/접속 주소가 생성되었다는 뜻이 아닙니다.
+## Chromium proxy CA 신뢰 설정
 
-`trial:measure`는 실제 HTTPS 시험 origin과 health(push disabled)를 확인하고 API 회귀검사, 기존 화면 브라우저 검사, 13명 API 부하, 로그인 profiling, 13개 Chromium 모바일 viewport 측정을 순차 실행합니다. 결과는 ignored `artifacts/`에 기록합니다. API p95 목표는 로그인 1000ms/목록 500ms/글 저장 500ms/사진 1500ms입니다. API 목표 미달은 exit1로 남기고 진단·브라우저 측정을 계속하며, 기능검사/인증 실패는 후속 단계를 중단합니다. 실패가 있을 때 부분 결과만 생성될 수 있으므로 전체 성공으로 보고하지 않습니다.
+환경의 Node/curl과 Chromium 신뢰 저장소가 다르면 ERR_CERT_AUTHORITY_INVALID가 생길 수 있습니다. 이번 환경에서는 제공된 `/usr/local/share/ca-certificates/environment-proxy-ca.crt` 공개 root CA가 기존 NSS 인증서와 달랐습니다. 공식 Chromium Linux 인증서 문서에 따라 실제 브라우저가 사용하는 NSS DB에 이 CA를 등록한 뒤 정상 TLS 검증으로 시험 화면에 접속했습니다. 인증서/개인키/DB 파일을 Git에 복사하지 않습니다. proxy를 해제하거나 ignoreHTTPSErrors/ignore-certificate-errors를 사용하지 않습니다.
 
-측정 위치는 Codex 클라우드의 설정된 HTTPS proxy이며 학생 기기의 실물 모바일/학교망 측정이 아닙니다. 최초 접속은 DOMContentLoaded, 글·사진 저장은 실제 저장 후 목록 확인까지입니다. 첫 요청이라고 Worker cold start가 확정되지는 않습니다. API/모델 테스트 중 일부는 local SQLite/mock 검사이므로 원격 API 검증과 구분합니다. 별도 시험 정적 origin↔Workers CORS/인증 사진 검증과 실물 PWA/iOS/Android는 아직 남아 있습니다. 운영 GitHub Pages origin은 승인 전 시험 허용 목록에 넣지 않습니다.
+이번 환경에서 통과한 명령(쓰기 권한이 필요한 경우 Codex가 도구의 sandbox 승인을 받아 실행):
 
-## 비용과 로그인 p95 원인
+```sh
+certutil -A -d sql:/home/agent/.pki/nssdb -t 'C,,' -n Codex-environment-proxy -i /usr/local/share/ca-certificates/environment-proxy-ca.crt
+OKGU_TRIAL_API_ORIGIN=https://okgu-diary-trial.rlasksk030.workers.dev npm run test:visit
+```
 
-최신 공식 문서 SHA `52f66cda7013e5fd9a4684015500ebd5734950bf`에서 Workers·D1·R2 가격/한도를 다시 확인했습니다. [전체 가격표와 사용량 가정](Cloudflare_시험배포.md) 및 [출처](공식문서_출처.json)를 참고합니다.
+CA 등록과 브라우저 실행을 **같은 승인된 실행 환경**에서 수행해야 합니다. 이번 managed 환경에서는 일반 실행과 승인된 실행의 home 신뢰 저장소 변경이 공유되지 않았고, 같은 승인된 실행 안에서 등록 후 browser를 실행했을 때 성공했습니다. 새 환경에서는 제공 CA와 실제 NSS 경로를 다시 확인합니다. Chromium146+는 기본 ~/.local/share/pki/nssdb를 쓰지만 기존 ~/.pki/nssdb가 있으면 그것을 사용합니다. 시스템 변수를 임의로 재지정하지 않습니다.
 
-- 작은 가상 시험은 계정의 무료 사용량이 남아 있고 무료 Worker CPU 한도를 충족하면 **추가 사용료 $0 예상**입니다. 계정 전체 기존 사용량/구독 상태는 아직 미확인입니다.
-- Workers Free는 요청당 **10ms CPU**, 하루 10만 요청입니다. Paid가 필요하면 계정 기본 **$5/월**(세금/환율 별도), 1천만 요청·3천만 CPU ms 포함입니다. 13명 규모의 일반 사용은 포함량 내를 예상하지만 실측 CPU와 전체 계정 사용량으로 확인합니다.
-- R2 Standard 무료 할당은 저장 10GB-month, Class A 100만·B 1천만/월이며 egress 무료입니다. 초과 단가는 저장 $0.015/GB-month, A $4.50/백만, B $0.36/백만이고 단위 올림이 적용됩니다. 100KB 원본+10KB 썸네일, 13명 하루4사진이면 연 약2.06GB 증가로 다른 사용량이 없다면 무료 저장량 이내입니다. R2를 처음 쓰면 결제수단/구독 동의를 요구할 수 있으므로 사용자 승인 전 활성화하지 않습니다.
+## PIN 호환성과 비용 판단
 
-기존 local 13명 로그인 p95 1630ms를 분리 측정했습니다: 단일 순차 warm 로그인 p95 **132ms**, 13명 동시 warm 로그인 **1515ms**, 13명 세션 확인 **71ms**. Node PBKDF2 단일 verify 141ms/13개 병렬 총 wall811ms였습니다. PIN 검증의 계산과 동시 요청 경합이 큰 부분으로 보이지만 end-to-end 수치만으로 D1 대기·isolate queue·native crypto CPU를 완전히 분리하지 못합니다. Node microbenchmark는 Worker CPU 증거가 아닙니다. [로컬 원시 결과](검증/login-profile-20261002-local.json)에 조건/한계를 보존했습니다. PBKDF2 SHA256 **600,000회와 권한 검사 강도를 유지**했습니다. 실제 Worker CPU는 배포 후 **Metrics → Errors → Invocation Statuses** 및 CPU duration에서 확인합니다. 1102/exceededCpu가 발생하면 비용을 제시하고 승인을 받은 뒤에만 유료 전환을 진행합니다.
+공식 workerd `51a48a5bb7863fbeab791358bee8dff22c3ce83f`의 limit-enforcer/crypto 구현 및 실제 오류에서 native PBKDF2 기본 상한100,000회를 확인했습니다. Node crypto 경로도 같은 상한을 검사합니다. `@noble/hashes`2.4.0 PBKDF2-HMAC-SHA256 대체 경로는 기존600,000회·salt 인코딩·256bit 출력 형식을 유지하고 독립 Node crypto 결과와 일치합니다. 해당 상한 오류만 대체하며 다른 crypto 오류는 실패합니다. 앞자리0 보존/강도 하한 테스트가 있습니다. async yield는 CPU 과금/한도를 피하지 않습니다.
 
-## 현재 확인한 결과와 차단된 단계
+기존 local 로그인p95 1630ms 원인 분리: 단일warm132ms,13명warm1515ms,13명session71ms. Node PBKDF2 verify141ms/13개 병렬총wall811ms로 계산과 동시 경합이 큰 부분입니다. D1 대기/isolate queue/native CPU를 완전히 분리한 증거는 아니며 [로컬 프로파일](검증/login-profile-20261002-local.json)은 Worker CPU 측정이 아닙니다. 현재 대체 경로의 실제 성공 성능도 미측정입니다. Paid 전환만으로1초 목표 달성을 보장하지 않습니다.
 
-- 원격 브랜치는 `4ebf92c`, 운영 main은 `964985d3ff683617de18e89f71521f2c224d50f2`에서 시작했습니다. 새 코드는 작업 브랜치에만 보존합니다.
-- local `npm test` **33/33**, 브라우저 **16개** 통과; TypeScript check 통과. Cloudflare 생성 API는 mock이며 실제 배포 결과가 아닙니다.
-- 초기 환경은 token/account 부재 및 proxy CONNECT403이었으나, 사용자 설정 후 현재는 token active 및 Cloudflare API/D1 접근이 성공했습니다. R2 subscription은 아직 비활성입니다.
-- 초기 `trial:launch`는 credentials 누락에서 멈췄고 최신 재실행은 시험 D1 생성/검사 후 R2 403/10042에서 중단됐습니다. 이어서 시험 D1 schema를 적용/검증했습니다. Worker 원격 배포와 trial:measure는 아직 미실행이며 실제 시험 URL·최초 접속/저장 속도는 미측정입니다.
-- 유료 활성화, 운영 main 병합/화면 교체, 실제 학생 자료/실제 푸시, Supabase, 별도 하루의 행간 저장소 변경은 수행하지 않았습니다. 잘못 전달된 하루의 행간 조사 문서는 이번 작업에 반입하지 않았습니다.
+공식 가격을2026-10-02 다시 확인했습니다. [가격표/사용 가정](Cloudflare_시험배포.md), [출처](공식문서_출처.json):
+
+- Workers Free10ms CPU/요청·10만요청/일. 현재 실제1102 발생. Paid 기본$5/월·1천만요청·3천만CPUms 포함, 추가100만요청$0.30/100만CPUms$0.02. 일반13명 사용은 포함량 내 예상이나 전체 사용량/실측CPU로 확인하며 세금·환율 별도입니다. **유료 전환 보류 유지**.
+- R2 Standard 기본구독$0, 무료10GB-month·Class A100만·B1천만/월, 초과$0.015/GB-month·$4.50/백만A·$0.36/백만B 및 단위올림, egress무료. 사용자 승인·활성화 완료. 작은 시험은 무료 할당 내$0 예상이며 계정 전체 기존 사용량은 미확인입니다.100KB 원본+10KB 썸네일·13명하루4사진이면 연약2.06GB 증가로 다른 사용량이 없다면 무료 저장량 이내입니다.
+
+남은 작업은 CPU 제한 해결 후 로그인/저장/사진/13명 실제 측정, 별도 시험 origin CORS/사진 ACL 검증, 실물 모바일·PWA 전체 업데이트, 실제 시트 헤더/mapping/원본 백업·변화분·신규 기록 보존 복귀 검증입니다. 실제 학생 반입·main 병합·운영 화면 교체·실제 푸시 전환은 결과와 전환안을 제시한 뒤 최종 승인받습니다.

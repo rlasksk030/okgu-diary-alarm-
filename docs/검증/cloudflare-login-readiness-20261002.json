@@ -1,0 +1,11 @@
+{
+  "at": "2026-10-02T09:48:54.581Z",
+  "environment": "actual Cloudflare trial",
+  "status": 503,
+  "durationMs": 2308,
+  "cpuError1102": true,
+  "hasToken": false,
+  "cfRay": "a442cb3b9ccd61a2-ORD",
+  "hash": "PBKDF2-HMAC-SHA256 600000 iterations retained",
+  "responseBodyStored": false
+}

@@ -1,0 +1,43 @@
+{
+  "at": "2026-10-02T10:12:29.394Z",
+  "environment": "actual deployed Cloudflare trial",
+  "URL": "https://okgu-diary-trial.rlasksk030.workers.dev/okgu-diary-alarm-/",
+  "measurementLocation": "Codex cloud Linux Chromium via configured proxy; mobile viewport, not a physical student device",
+  "conditions": "3 sequential fresh browser contexts; DOMContentLoaded; no login attempted; writes blocked; no artificial throttling; cold Worker not inferred",
+  "tlsVerificationEnabled": true,
+  "samples": [
+    {
+      "ms": 467,
+      "status": 200,
+      "title": "OKGU DIARY",
+      "loginScreenVisible": true,
+      "cfRay": "a442edcc0c02e6c0-ORD",
+      "cacheStatus": "MISS",
+      "blockedWrites": 0
+    },
+    {
+      "ms": 216,
+      "status": 200,
+      "title": "OKGU DIARY",
+      "loginScreenVisible": true,
+      "cfRay": "a442edcfcf52a8aa-ORD",
+      "cacheStatus": "HIT",
+      "blockedWrites": 0
+    },
+    {
+      "ms": 250,
+      "status": 200,
+      "title": "OKGU DIARY",
+      "loginScreenVisible": true,
+      "cfRay": "a442edd21b652262-ORD",
+      "cacheStatus": "HIT",
+      "blockedWrites": 0
+    }
+  ],
+  "summary": {
+    "n": 3,
+    "p50": 250,
+    "max": 467
+  },
+  "failed": false
+}

@@ -7,8 +7,8 @@
   },
   "scripts": {
     "start": "node scripts/start.mjs",
-    "seed": "node --import tsx scripts/seed.mjs",
-    "test": "node --import tsx --test tests/*.test.mjs",
+    "seed": "node --use-env-proxy --import tsx scripts/seed.mjs",
+    "test": "node --use-env-proxy --import tsx --test tests/*.test.mjs",
     "test:browser": "node --import tsx scripts/browser-test.mjs",
     "test:load": "node --use-env-proxy scripts/load-test.mjs",
     "build:trial": "node scripts/build-trial.mjs",
@@ -24,9 +24,11 @@
     "trial:provision": "node --use-env-proxy scripts/provision-trial.mjs",
     "profile:login": "node --use-env-proxy --import tsx scripts/profile-login.mjs",
     "trial:launch": "node --use-env-proxy scripts/launch-trial.mjs",
-    "trial:measure": "node --use-env-proxy scripts/measure-trial.mjs"
+    "trial:measure": "node --use-env-proxy scripts/measure-trial.mjs",
+    "test:visit": "node scripts/first-visit-test.mjs"
   },
   "dependencies": {
+    "@noble/hashes": "2.4.0",
     "tsx": "4.20.5"
   },
   "devDependencies": {

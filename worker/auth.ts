@@ -1,13 +1,14 @@
 import {AppError,type Account,type Env} from './types';
+import {derivePinBits} from './pbkdf2';
 const encoder=new TextEncoder();
 export const hex=(data:ArrayBuffer)=>Array.from(new Uint8Array(data),b=>b.toString(16).padStart(2,'0')).join('');
 export async function digest(value:string|ArrayBuffer){return hex(await crypto.subtle.digest('SHA-256',typeof value==='string'?encoder.encode(value):value));}
 function salt(){return crypto.randomUUID().replace(/-/g,'');}
-export async function hashPin(pin:string){const s=salt(),iterations=600000;const key=await crypto.subtle.importKey('raw',encoder.encode(pin),'PBKDF2',false,['deriveBits']);const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:encoder.encode(s),iterations},key,256);return `pbkdf2$${iterations}$${s}$${hex(bits)}`;}
+export async function hashPin(pin:string){const s=salt(),iterations=600000;return `pbkdf2$${iterations}$${s}$${hex(await derivePinBits(pin,s,iterations))}`;}
 export async function verifyPin(pin:string,stored:string){
  const parts=stored.split('$');let actual='';let expected='';
  if(parts[0]==='sha256'&&parts.length===3){const bytes=new Uint8Array(await crypto.subtle.digest('SHA-256',encoder.encode(parts[1]+'|'+pin)));actual=btoa(String.fromCharCode(...bytes));expected=parts[2];}
- else if(parts[0]==='pbkdf2'&&parts.length===4){const iterations=Number(parts[1]);if(!Number.isInteger(iterations)||iterations<600000||iterations>1000000||!/^[a-f0-9]{32}$/.test(parts[2])||!/^[a-f0-9]{64}$/.test(parts[3]))return false;const key=await crypto.subtle.importKey('raw',encoder.encode(pin),'PBKDF2',false,['deriveBits']);actual=hex(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:encoder.encode(parts[2]),iterations},key,256));expected=parts[3];}
+ else if(parts[0]==='pbkdf2'&&parts.length===4){const iterations=Number(parts[1]);if(!Number.isInteger(iterations)||iterations<600000||iterations>1000000||!/^[a-f0-9]{32}$/.test(parts[2])||!/^[a-f0-9]{64}$/.test(parts[3]))return false;actual=hex(await derivePinBits(pin,parts[2],iterations));expected=parts[3];}
  else return false;
  let diff=actual.length^expected.length;for(let i=0;i<Math.max(actual.length,expected.length);i++)diff|=(actual.charCodeAt(i)||0)^(expected.charCodeAt(i)||0);return diff===0;
 }
