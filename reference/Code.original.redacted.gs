@@ -1050,7 +1050,7 @@ function getStudentDashboard(token, studentName) {
   if (!_p || (_p.role !== '선생님' && _p.name !== studentName)) return { entries: [], teacherCommentMap: {} };
   const entrySheet   = getSheet('일기기록');
   const commentSheet = _ensureTeacherCommentParentColumn_();
-  const boardCommentSheet = getSheet('게시판댓글'); 
+  const boardCommentSheet = getSheet('게시판댓글');
   const allEntries  = entrySheet.getDataRange().getValues().slice(1);
   const allComments = commentSheet.getDataRange().getValues().slice(1).filter(r => r[0]);
   const allBoardComments = boardCommentSheet.getDataRange().getValues().slice(1).filter(r => r[0]);
