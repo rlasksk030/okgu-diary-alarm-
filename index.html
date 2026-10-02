@@ -1226,7 +1226,7 @@ function refreshMyPushStatus(){
 }
 async function _getPushRegistration(){
   if(!_pushSupported()) throw new Error('이 기기는 Web Push를 지원하지 않아요.');
-  return await navigator.serviceWorker.register('sw.js?v=20260605-deeplink');
+  return await navigator.serviceWorker.register('sw.js',{updateViaCache:'none'});
 }
 async function enableRealPush(){
   closeAvMenu();
@@ -3462,7 +3462,7 @@ function renderPraiseMod(){
     el.innerHTML = '<div style="color:var(--text3);padding:12px 0;text-align:center;">'+msg+'</div>';
     return;
   }
-  el.innerHTML = items.slice(0, 50).map(function(p){
+  el.innerHTML = items.map(function(p){
     const praiseIdJs = escJs(p.id);
     // 상태별 뱃지
     let statusTag = '';

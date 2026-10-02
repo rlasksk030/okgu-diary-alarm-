@@ -1,0 +1,39 @@
+{
+  "time": "2026-10-02T07:26:19.845Z",
+  "environment": "Codex container local workerd + Chromium; NOT deployed Cloudflare measurements",
+  "concurrentUsers": 13,
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "photo": "synthetic 180x180 ~97KB PNG; existing browser compression + binary multipart original/thumbnail",
+  "network": "no artificial throttling",
+  "failures": [],
+  "summary": {
+    "firstVisit": {
+      "n": 13,
+      "p50": 2146,
+      "p95": 2232
+    },
+    "login": {
+      "n": 13,
+      "p50": 2171,
+      "p95": 2421
+    },
+    "revisit": {
+      "n": 13,
+      "p50": 970,
+      "p95": 1108
+    },
+    "textSave": {
+      "n": 13,
+      "p50": 654,
+      "p95": 901
+    },
+    "photoSave": {
+      "n": 13,
+      "p50": 1571,
+      "p95": 1973
+    }
+  }
+}

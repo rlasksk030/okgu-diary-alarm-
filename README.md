@@ -23,6 +23,8 @@ npm test
 npm run test:browser
 npm run test:load
 npm run migrate
+npm run migrate:delta:rehearsal
+npm run test:load:browser
 ```
 
 Chromium은 `/usr/bin/chromium`을 사용합니다. 경로가 다르면 `CHROME_PATH`를 설정하거나 `npx playwright install chromium`으로 설치하고 브라우저 스크립트의 executablePath 설정을 조정합니다. Windows/macOS 자체 개발은 별도 검증하지 않았습니다.
@@ -32,3 +34,5 @@ Chromium은 `/usr/bin/chromium`을 사용합니다. 경로가 다르면 `CHROME_
 성능 스크립트는 오류가 없어도 설정된 p95 목표를 넘으면 exit 1입니다. 목표 미달을 통과로 보고하지 않습니다. 결과는 `artifacts`에 생성되며 검토한 가상 자료의 측정값만 docs에 복사합니다.
 
 실제 배포는 `npm run deploy:trial`이지만 브랜치 검사, 별도 D1 UUID와 비공개 R2 준비가 필요합니다. Cloudflare 화면/인증이 없는 동안도 로컬 개발은 계속 가능합니다. GitHub Pages 운영 화면을 이 시험 bundle로 교체하지 마십시오.
+
+자료 이전·격리 복원·신규 기록 보존 절차는 [자료 이전과 복귀](docs/자료이전_전환_복귀.md)에 있습니다. 성능 검사는 다른 suite와 동시에 실행하지 않습니다. 정적 bundle 재생성 후 기존 서버가 asset 500을 반환하면 이 작업의 서버만 재시작합니다.

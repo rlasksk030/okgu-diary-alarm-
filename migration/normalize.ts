@@ -18,7 +18,8 @@ export async function normalizeExport(raw:any,identity:any):Promise<Snapshot>{
    if(typeof id!=='string'||!id)throw new Error('STABLE_ID_REQUIRED');
    if(entity==='학생계정'){
     if(typeof cells.PIN!=='string')throw new Error('PIN_STRING_REQUIRED');
-    if(!/^(sha256|scrypt)\$/.test(cells.PIN))cells.PIN=await hashPin(cells.PIN);
+    if(cells.PIN.startsWith('scrypt$'))throw new Error('UNSUPPORTED_PIN');
+    if(!/^(sha256|pbkdf2)\$/.test(cells.PIN))cells.PIN=await hashPin(cells.PIN);
     if(accountByName.has(String(cells['이름'])))throw new Error('AMBIGUOUS_LOGIN_NAME');
     accountByName.set(String(cells['이름']),id);
    }
@@ -26,7 +27,7 @@ export async function normalizeExport(raw:any,identity:any):Promise<Snapshot>{
   }
  }
  const fields:Record<string,string[]>={'일기기록':['학생이름'],'게시판':['작성자'],'게시판댓글':['작성자'],'게시판좋아요':['학생이름'],'칭찬메시지':['보낸사람','받는사람'],'선생님댓글':['선생님이름'],'학생태그':['이름','설정자'],'알림':['받는사람'],'푸시구독':['이름']};
- for(const [entity,rows] of Object.entries(entities))for(const row of rows){row.accountRefs={};for(const field of fields[entity]||[]){const ref=accountByName.get(String(row.cells[field]));if(!ref)throw new Error('UNRESOLVED_ACCOUNT');row.accountRefs[field]=ref;}}
+ for(const [entity,rows] of Object.entries(entities))for(const row of rows){row.accountRefs={};for(const field of fields[entity]||[]){const ref=entity==='칭찬메시지'&&field==='받는사람'&&row.cells[field]==='담임'?'@homeroom':accountByName.get(String(row.cells[field]));if(!ref)throw new Error('UNRESOLVED_ACCOUNT');row.accountRefs[field]=ref;}}
  const files=raw.files||[];
  for(const row of entities['일기기록']||[]){let urls;try{urls=JSON.parse(String(row.cells['사진URLs']));}catch{throw new Error('PHOTO_JSON');}if(!Array.isArray(urls))throw new Error('PHOTO_JSON');row.cells['사진URLs']=JSON.stringify(urls.map((url:any,ordinal:number)=>{const file=files.find((f:any)=>f.diaryId===row.id&&f.ordinal===ordinal&&f.sourceUrl===url);if(!file)throw new Error('PHOTO_MANIFEST_REQUIRED');return file.id;}));}
  return {format:1,sourceId:identity.sourceId,synthetic:raw.synthetic===true,complete:true,capturedAt:raw.capturedAt,classId:identity.classId,classLabel:identity.classLabel,identityReviewed:true,entities,files:files.map(({sourceUrl,...f}:any)=>f)};

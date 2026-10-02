@@ -34,7 +34,7 @@ export function plan(snapshot:Snapshot){
    try{
     for(const field of ({'일기기록':['학생이름'],'게시판':['작성자'],'게시판댓글':['작성자'],'게시판좋아요':['학생이름'],'칭찬메시지':['보낸사람','받는사람'],'선생님댓글':['선생님이름'],'학생태그':['이름','설정자'],'알림':['받는사람'],'푸시구독':['이름']} as Record<string,string[]>)[entity]||[]){
      const ref=row.accountRefs?.[field],account=ref?accounts.get(ref):undefined;
-     if(!account||account.cells['이름']!==row.cells[field])throw new Error('UNRESOLVED_ACCOUNT');
+     if(!(entity==='칭찬메시지'&&field==='받는사람'&&ref==='@homeroom'&&row.cells[field]==='담임')&&(!account||account.cells['이름']!==row.cells[field]))throw new Error('UNRESOLVED_ACCOUNT');
     }
     if(entity==='학생계정'){
      const c=row.cells; if(typeof c.PIN!=='string'||!(/^(?:sha256\$[^$]+\$[^$]+|pbkdf2\$600000\$[a-f0-9]{32}\$[a-f0-9]{64})$/.test(c.PIN)))throw new Error('UNSUPPORTED_PIN');

@@ -1,0 +1,20 @@
+import {chromium} from 'playwright';import {mkdir,writeFile} from 'node:fs/promises';import assert from 'node:assert/strict';
+const origin=process.env.OKGU_TRIAL_FRONTEND_ORIGIN||process.env.OKGU_TRIAL_API_ORIGIN||'http://127.0.0.1:3020',base=origin+'/okgu-diary-alarm-/';
+const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
+const samples={firstVisit:[],login:[],revisit:[],textSave:[],photoSave:[]},failures=[];
+const timed=async(key,fn)=>{const start=performance.now();await fn();samples[key].push(Math.round(performance.now()-start));};
+try{await Promise.all(Array.from({length:13},async(_,i)=>{const context=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Seoul'});try{const page=await context.newPage();page.on('dialog',d=>d.dismiss());await context.route('**/*',route=>{const u=new URL(route.request().url());return ['127.0.0.1','localhost',new URL(origin).hostname,...(process.env.OKGU_TRIAL_API_ORIGIN?[new URL(process.env.OKGU_TRIAL_API_ORIGIN).hostname]:[])].includes(u.hostname)?route.continue():route.abort();});
+ await timed('firstVisit',()=>page.goto(base,{waitUntil:'domcontentloaded'}));
+ await page.locator('#li-name').fill('시험학생'+String(i+1).padStart(2,'0'));await page.locator('#li-pin').fill('0042');
+ await timed('login',async()=>{await page.locator('#login-btn').click();await page.locator('#main-app').waitFor({state:'visible',timeout:60000});});
+ await page.locator('#custom-confirm-modal').waitFor({state:'visible'});await page.locator('#custom-confirm-cancel').click();
+ await timed('revisit',async()=>{await page.reload();await page.locator('#main-app').waitFor({state:'visible'});});await page.locator('#custom-confirm-modal').waitFor({state:'visible'});await page.locator('#custom-confirm-cancel').click();
+ const text='가상 브라우저13 '+i+' '+Date.now();await page.locator('#diary-text').fill(text);
+ await timed('textSave',async()=>{await page.locator('#save-btn').click();await page.waitForFunction(value=>!_saveInProgress&&myEntries.some(e=>e.text===value),text,{timeout:60000});});
+ await page.locator('#diary-text').fill(text+' 사진');await page.locator('input[type=file]').first().setInputFiles('fixtures/load-photo.png');await page.waitForFunction(()=>pendingPhotos.length===1);
+ await timed('photoSave',async()=>{await page.locator('#save-btn').click();await page.waitForFunction(value=>!_saveInProgress&&pendingPhotos.length===0&&myEntries.some(e=>e.text===value&&e.photos.length===1),text+' 사진',{timeout:60000});});
+ assert.equal(await page.locator('#diary-text').inputValue(),'');
+ }catch(error){failures.push({syntheticUser:i+1,message:error.message.split('\n')[0]});}finally{await context.close();}}));
+ const summary=Object.fromEntries(Object.entries(samples).map(([key,values])=>{values.sort((a,b)=>a-b);return [key,{n:values.length,p50:values[Math.floor(values.length*.5)],p95:values[Math.min(values.length-1,Math.floor(values.length*.95))]}];}));
+ const report={time:new Date().toISOString(),environment:origin.includes('127.0.0.1')||origin.includes('localhost')?'Codex container local workerd + Chromium; NOT deployed Cloudflare measurements':'deployed Cloudflare trial',concurrentUsers:13,viewport:{width:390,height:844},photo:'synthetic 180x180 ~97KB PNG; existing browser compression + binary multipart original/thumbnail',network:'no artificial throttling',failures,summary};await mkdir('artifacts',{recursive:true});await writeFile('artifacts/브라우저13_속도_2026-10-02.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));if(failures.length)process.exitCode=1;
+}finally{await browser.close();}

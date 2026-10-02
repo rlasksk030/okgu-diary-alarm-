@@ -13,6 +13,6 @@
   },
   "d1_databases": [{"binding": "DB", "database_name": "okgu-diary-trial", "database_id": "00000000-0000-0000-0000-000000000001", "migrations_dir": "migrations"}],
   "r2_buckets": [{"binding": "PHOTOS", "bucket_name": "okgu-diary-trial-private"}],
-  "triggers": {"crons": ["0 13 * * *", "*/5 * * * *", "0 4 * * *"]},
+  "triggers": {"crons": ["0 13 * * *", "* * * * *", "0 4 * * *"]},
   "observability": {"enabled": false}
 }

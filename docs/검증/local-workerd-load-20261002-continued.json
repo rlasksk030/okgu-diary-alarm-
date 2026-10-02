@@ -1,0 +1,45 @@
+{
+  "time": "2026-10-02T07:22:03.198Z",
+  "conditions": {
+    "concurrentUsers": 13,
+    "rounds": 5,
+    "server": "Cloudflare Workers API; 13 concurrent users; no artificial network delay",
+    "photo": "synthetic 180x180 PNG (~97KB) binary upload to private R2 + D1 save",
+    "region": "local workerd emulation; NOT deployed Cloudflare measurements",
+    "targets": {
+      "loginP95ms": 1000,
+      "listP95ms": 500,
+      "saveP95ms": 500,
+      "photoP95ms": 1500
+    },
+    "baseline": "Operating GAS unreachable by current egress policy; comparative improvement cannot be measured"
+  },
+  "failures": 0,
+  "summary": {
+    "login": {
+      "n": 13,
+      "p50": 1628,
+      "p95": 1630
+    },
+    "reconnect": {
+      "n": 13,
+      "p50": 43,
+      "p95": 141
+    },
+    "list": {
+      "n": 65,
+      "p50": 211,
+      "p95": 320
+    },
+    "save": {
+      "n": 65,
+      "p50": 176,
+      "p95": 200
+    },
+    "photo": {
+      "n": 13,
+      "p50": 389,
+      "p95": 502
+    }
+  }
+}

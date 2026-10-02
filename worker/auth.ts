@@ -20,5 +20,11 @@ export async function login(env:Env,name:unknown,pin:unknown,remember:unknown){i
  const newHash=row.pin_hash.startsWith('sha256$')?await hashPin(pin.trim()):row.pin_hash;
  const bytes=crypto.getRandomValues(new Uint8Array(32)),token=btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');const tokenHash=await digest(token);
  const changed=await env.DB.batch([env.DB.prepare('UPDATE credentials SET pin_hash=? WHERE account_id=? AND pin_hash=?').bind(newHash,row.account_id,row.pin_hash),env.DB.prepare('INSERT INTO sessions(token_hash,account_id,expires_at) SELECT ?,a.id,? FROM accounts a JOIN credentials c ON c.account_id=a.id WHERE a.id=? AND a.active=1 AND c.pin_hash=?').bind(tokenHash,now+(remember===true?30:7)*86400000,row.account_id,newHash),env.DB.prepare('DELETE FROM login_attempts WHERE key=?').bind(key)]);
- if(changed[1].meta.changes!==1)throw new AppError('E_AUTH',401);return {...pub(await session(env,token)),token};
+ if(changed[1].meta.changes!==1){
+  // Another successful legacy login may have upgraded the same hash first.
+  const current=await env.DB.prepare('SELECT pin_hash FROM credentials WHERE account_id=?').bind(row.account_id).first<{pin_hash:string}>();
+  if(!current||!await verifyPin(pin.trim(),current.pin_hash))throw new AppError('E_AUTH',401);
+  const inserted=await env.DB.prepare('INSERT INTO sessions(token_hash,account_id,expires_at) SELECT ?,a.id,? FROM accounts a JOIN credentials c ON c.account_id=a.id WHERE a.id=? AND a.active=1 AND c.pin_hash=?').bind(tokenHash,now+(remember===true?30:7)*86400000,row.account_id,current.pin_hash).run();
+  if(inserted.meta.changes!==1)throw new AppError('E_AUTH',401);
+ }return {...pub(await session(env,token)),token};
 }

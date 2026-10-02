@@ -17,7 +17,10 @@
     "check": "tsc --noEmit",
     "build": "node scripts/build-trial.mjs",
     "build:local": "node scripts/build-trial.mjs --local",
-    "deploy:trial": "node scripts/deploy-trial.mjs"
+    "deploy:trial": "node scripts/deploy-trial.mjs",
+    "restore:rehearsal": "node --import tsx scripts/restore-rehearsal.mjs",
+    "migrate:delta:rehearsal": "node --import tsx scripts/delta-rehearsal.mjs",
+    "test:load:browser": "node scripts/browser-load-test.mjs"
   },
   "dependencies": {
     "tsx": "4.20.5"

@@ -34,7 +34,7 @@
 - Worker URL과 `/api/health` 확인, 가상 이름/PIN 로그인.
 - `OKGU_TRIAL_API_ORIGIN=https://실제시험Worker주소 npm run test:load`: 13명 동시 로그인/조회/글/사진 저장. 결과 JSON의 region이 실제 배포라고 명시되는지 확인합니다.
 - 별도 시험 정적 origin과 Worker origin으로 CORS preflight, 허용하지 않은 origin 거부, 학생/교사/개인 사진 접근을 확인합니다. 운영 `rlasksk030.github.io` origin은 승인 전 배포 설정에 추가하지 않습니다.
-- 브라우저 테스트는 아직 로컬 URL을 사용합니다. 원격 URL/허용 origin/가상 자료 초기화 후 최초 접속, 재접속, 글·사진 저장 수치를 별도로 측정하도록 확장해야 합니다.
+- `OKGU_TRIAL_API_ORIGIN=https://시험Worker주소 npm run test:browser` 및 `npm run test:load:browser`는 실제 시험 주소를 지원합니다. 별도 정적 origin은 `OKGU_TRIAL_FRONTEND_ORIGIN`도 설정합니다. API와 브라우저 성능 검사는 순차 실행합니다. 브라우저 13 context의 최초 접속/로그인/재접속/글 저장/사진 저장 시간을 별도로 기록하며 실물 모바일 검증과 구분합니다.
 - Workers CPU duration와 D1 read/write 지표를 확인합니다. 로컬 workerd 속도는 실제 배포 속도가 아닙니다.
 
 ## 공식 요금과 예상 비용
@@ -51,7 +51,7 @@
 
 R2 사용량은 요금 단위로 올림됩니다. Infrequent Access에는 무료 할당이 없어 선택하지 않습니다. 무료 할당은 이 앱 전용이 아니라 계정 전체 사용량과 합산됩니다.
 
-13명 × 하루 4사진 × 30일 = 월 1,560사진. 평균 100KB 압축 사진이면 월 약 0.156GB, 1년 약 1.87GB 증가로 R2 무료 저장 범위 안입니다. 사진 1MB 최대치가 매번 발생하면 1년 약 18.7GB로 무료 10GB 초과분의 저장료가 월 약 $0.14 수준으로 증가할 수 있습니다. 파일 보존 기간과 기존 계정 사용량에 따라 다릅니다. Class A 업로드 약 1,560/월 및 일반적인 조회는 무료 요청 범위 이내로 예상합니다.
+13명 × 하루 4사진 × 30일 = 월 1,560사진. 평균 100KB 압축 사진이면 월 약 0.156GB, 1년 약 1.87GB 증가로 R2 무료 저장 범위 안입니다. 사진 1MB 최대치가 매번 발생하면 1년 약 18.7GB로 무료 10GB 초과분의 저장료가 월 약 $0.14 수준으로 증가할 수 있습니다. 파일 보존 기간과 기존 계정 사용량에 따라 다릅니다. 별도 작은 썸네일을 원본과 함께 저장하므로 저장량에 썸네일도 더합니다(예: 10KB/개이면 연 약 0.19GB 추가). Class A 업로드 약 3,120/월 및 일반적인 조회는 무료 요청 범위 이내로 예상합니다.
 
 Workers 무료 CPU 10ms는 PBKDF2 PIN 검증/최초 legacy 해시 업그레이드에서 초과할 수 있습니다. 13명 동시 로컬 로그인 p95가 목표 1초를 넘었습니다. 실제 CPU 지표를 확인한 뒤 무료가 충분한지 판단하며, 유료 전환이 필요하면 **기본 예상 $5/월 + R2 무료 초과 저장료**, 통상 위 사용량에서 약 $5/월입니다. 유료 전환/결제수단 등록은 사용자 판단과 승인이 필요합니다. 과금은 활성화하지 않았습니다.
 
@@ -64,3 +64,7 @@ Workers 무료 CPU 10ms는 PBKDF2 PIN 검증/최초 legacy 해시 업그레이�
 - https://developers.cloudflare.com/workers/ci-cd/builds/configuration/
 
 D1은 PostgreSQL/RLS/interactive transaction을 제공하지 않습니다. D1 batch는 순차 실행하며 전체 실패 시 롤백됩니다. 모든 권한은 Worker의 세션/계정/학급/visibility 검사와 atomic batch 내 재검사로 구현합니다. 현재 DB schema의 SQL은 SQLite/D1용입니다.
+
+준비 스크립트는 계정 화면의 main 자동배포 설정을 직접 변경하지 못합니다. GitHub에서 시험 브랜치만 push하더라도 Cloudflare에 연결된 실제 branch control과 GitHub Pages의 배포 branch를 사용자가 확인해야 합니다. 기존 main/Pages 설정을 변경하지 않습니다.
+
+실제 trial은 cron 전체 제거 및 PUSH_MODE disabled입니다. 운영용 예약은 22:00 KST(13:00 UTC)에 미작성 job을 만들고 한 번에 최대 8개씩 발송합니다. 13명이 전원 미작성인 경우 나머지는 다음 분의 dispatcher에서 처리하는 설계이며 정확히 22:00:00 도착을 보장하지 않습니다. 발송 시 최신 공개 범위/작성 여부를 다시 확인하며 timeout 결과는 unknown으로 남기고 자동 재발송하지 않습니다. 미사용 업로드·제거한 사진은 7일 후 청소하고 삭제 R2 작업은 실패 시 재시도합니다. 삭제 일기의 사진은 복귀를 위해 보존합니다. 보존량은 비용 예산에 포함해야 합니다.
