@@ -1,0 +1,25 @@
+{
+  "at": "2026-10-02T17:44:53.397Z",
+  "origin": "https://okgu-diary-trial.rlasksk030.workers.dev",
+  "files": {
+    "index.html": {
+      "matchesSource": true,
+      "sha256": "334bf59255427ab3e6c26bfe0d9154a1295031e4a7d47c9809e11a5cd9645c19"
+    },
+    "fast-ui.js": {
+      "matchesSource": true,
+      "sha256": "229de7a8be83eed9fd103494fc45b95541107f3d54c64f806c313015d42fada6"
+    },
+    "rpc.js": {
+      "matchesSource": true,
+      "sha256": "f12e23ec4d3c0af98cf437a81c9c91b2b3837e06cb7e20c60f8f80105c36e763"
+    }
+  },
+  "testMode": "synthetic-trial",
+  "push": "disabled",
+  "diagnostics": false,
+  "cronCount": 0,
+  "r2Public": false,
+  "workersPaidActivated": false,
+  "studentDataImported": false
+}

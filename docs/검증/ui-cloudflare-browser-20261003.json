@@ -1,0 +1,73 @@
+{
+  "environment": "deployed Cloudflare trial",
+  "frontendOrigin": "https://okgu-diary-trial.rlasksk030.workers.dev",
+  "browser": "Linux Chromium; viewport only, not physical mobile devices",
+  "workerVersion": "2289c6e1-f37e-4fc6-9696-9e28b06be189",
+  "source": "successful actual run .local/ui-restore-remote-browser-complete.log; timings not captured in this report",
+  "results": [
+    {
+      "name": "first visit and original login UI",
+      "result": "passed"
+    },
+    {
+      "name": "login with zero-prefixed PIN; no GAS request",
+      "result": "passed"
+    },
+    {
+      "name": "text save committed then UI success",
+      "result": "passed"
+    },
+    {
+      "name": "quick diary saves through same authenticated server",
+      "result": "passed"
+    },
+    {
+      "name": "binary photo upload and diary save",
+      "result": "passed"
+    },
+    {
+      "name": "photo edit retains existing attachment",
+      "result": "passed"
+    },
+    {
+      "name": "failed save preserves text and attachment; retry",
+      "result": "passed"
+    },
+    {
+      "name": "search queries server; stat/calendar and authenticated photo load",
+      "result": "passed"
+    },
+    {
+      "name": "search more button loads all fifty-one matching records",
+      "result": "passed"
+    },
+    {
+      "name": "yearbook opens synchronously and waits for authenticated photos",
+      "result": "passed"
+    },
+    {
+      "name": "offline save keeps draft; reconnection permits retry",
+      "result": "passed"
+    },
+    {
+      "name": "PWA registration retains scope and does not cache account data",
+      "result": "passed"
+    },
+    {
+      "name": "revisit restores session; logout/account switch isolates data",
+      "result": "passed"
+    },
+    {
+      "name": "teacher dashboard uses one bundle and existing renderers",
+      "result": "passed"
+    },
+    {
+      "name": "teacher student modal loads a second page and retains comment draft",
+      "result": "passed"
+    },
+    {
+      "name": "no JavaScript exceptions and no chunking/GAS calls",
+      "result": "passed"
+    }
+  ]
+}

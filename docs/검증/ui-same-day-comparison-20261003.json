@@ -1,0 +1,135 @@
+{
+  "baseline": "964985d3ff683617de18e89f71521f2c224d50f2",
+  "trialCommit": "ce060a8 + UI restoration patch (committed with this report)",
+  "fixture": "synthetic only; no GAS/production network, authentication, or student data",
+  "staticHTMLEqual": true,
+  "cssEqual": true,
+  "cases": 24,
+  "matches": 24,
+  "errors": [],
+  "results": [
+    {
+      "name": "390-student-login",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-login-name-validation",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-write",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-quick",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-write-helper",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-avatar",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-pin-sheet",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-board",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-search",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-search-result",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-stat",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-stat-day",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-stat-month",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-stat-all",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-praise",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-praise-sent",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-stat-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-praise-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-praise-error",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-logout-confirm",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-reconnect-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-print-preview",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-empty-stat",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-empty-print-message",
+      "equal": true,
+      "differences": [
+        "아직 작성한 일기가 없어요",
+        "아직 작성한 일기가 없어요"
+      ]
+    }
+  ]
+}
