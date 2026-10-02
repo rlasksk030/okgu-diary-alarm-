@@ -1,9 +1,10 @@
+import {browserOptions} from './lib/browser-options.mjs';
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 const origin=process.env.OKGU_TRIAL_FRONTEND_ORIGIN||process.env.OKGU_TRIAL_API_ORIGIN||'http://127.0.0.1:3020';
 const base=origin+'/okgu-diary-alarm-/';
-const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
+const browser=await chromium.launch(browserOptions(origin));
 const results=[];const measure=async(name,fn)=>{const t=performance.now();await fn();results.push({name,ms:Math.round(performance.now()-t),result:'passed'});console.log('PASS:',name);};
 try{
  const context=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Seoul'});const page=await context.newPage();const errors=[],rpcMethods=[];let external=0;let paginationIds=[];

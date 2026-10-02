@@ -1,0 +1,15 @@
+import {mkdir,writeFile} from 'node:fs/promises';
+import {performance} from 'node:perf_hooks';
+import {hashPin,verifyPin} from '../worker/auth.ts';
+const origin=process.env.OKGU_TRIAL_API_ORIGIN||'http://127.0.0.1:3020';
+const measure=async fn=>{const start=performance.now();const value=await fn();return {value,ms:Math.round(performance.now()-start)};};
+const rpc=async(method,args=[],token='')=>{const response=await fetch(origin+'/api/rpc',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json','X-OKGU-Request':'1',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify({method,args}),signal:AbortSignal.timeout(30000)});const body=await response.json();if(!response.ok)throw new Error('Synthetic login profiling failed: HTTP '+response.status+' '+body.code);return body;};
+const stats=values=>{const sorted=values.slice().sort((a,b)=>a-b);return {n:sorted.length,p50:sorted[Math.floor(sorted.length*.5)],p95:sorted[Math.min(sorted.length-1,Math.floor(sorted.length*.95))]};};
+const hash=(await measure(()=>hashPin('0042')));const oneCrypto=await measure(()=>verifyPin('0042',hash.value));
+const parallelCrypto=await measure(()=>Promise.all(Array.from({length:13},()=>verifyPin('0042',hash.value))));
+const first=[];for(let i=1;i<=13;i++)first.push(await measure(()=>rpc('login',['시험학생'+String(i).padStart(2,'0'),'0042',false])));
+const serial=[];for(let i=1;i<=13;i++)serial.push((await measure(()=>rpc('login',['시험학생'+String(i).padStart(2,'0'),'0042',false]))).ms);
+const parallel=await Promise.all(Array.from({length:13},(_,i)=>measure(()=>rpc('login',['시험학생'+String(i+1).padStart(2,'0'),'0042',false]))));
+const sessions=await Promise.all(first.map(x=>measure(()=>rpc('verifyToken',[],x.value.token))));
+const report={time:new Date().toISOString(),apiOrigin:origin,environment:origin.includes('127.0.0.1')||origin.includes('localhost')?'local workerd; NOT deployed Cloudflare':'deployed Cloudflare trial',hash:{algorithm:'PBKDF2 SHA256',iterations:600000,unchanged:true},nodeMicrobenchmark:{runtime:process.version,hashMs:hash.ms,verifyMs:oneCrypto.ms,thirteenParallelVerifyWallMs:parallelCrypto.ms,note:'Node WebCrypto microbenchmark is separate from Worker CPU/latency; does not prove deployed CPU consumption'},workerdHTTP:{firstSerialLogin:stats(first.map(x=>x.ms)),warmSerialLogin:stats(serial),warmThirteenConcurrentLogin:stats(parallel.map(x=>x.ms)),thirteenConcurrentSessionVerify:stats(sessions.map(x=>x.ms))},limitations:['No hash/authentication checks disabled','First measured logins may already use PBKDF2; cold legacy upgrade is not inferred','End-to-end HTTP timing cannot separate D1 wait, isolate queue and native crypto CPU; deployed metrics/profiling still required']};
+await mkdir('artifacts',{recursive:true});await writeFile('artifacts/login-profile-20261002.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));

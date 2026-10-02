@@ -1,6 +1,7 @@
+import {browserOptions} from './lib/browser-options.mjs';
 import {chromium} from 'playwright';import {mkdir,writeFile} from 'node:fs/promises';import assert from 'node:assert/strict';
 const origin=process.env.OKGU_TRIAL_FRONTEND_ORIGIN||process.env.OKGU_TRIAL_API_ORIGIN||'http://127.0.0.1:3020',base=origin+'/okgu-diary-alarm-/';
-const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
+const browser=await chromium.launch(browserOptions(origin));
 const samples={firstVisit:[],login:[],revisit:[],textSave:[],photoSave:[]},failures=[];
 const timed=async(key,fn)=>{const start=performance.now();await fn();samples[key].push(Math.round(performance.now()-start));};
 try{await Promise.all(Array.from({length:13},async(_,i)=>{const context=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Seoul'});try{const page=await context.newPage();page.on('dialog',d=>d.dismiss());await context.route('**/*',route=>{const u=new URL(route.request().url());return ['127.0.0.1','localhost',new URL(origin).hostname,...(process.env.OKGU_TRIAL_API_ORIGIN?[new URL(process.env.OKGU_TRIAL_API_ORIGIN).hostname]:[])].includes(u.hostname)?route.continue():route.abort();});

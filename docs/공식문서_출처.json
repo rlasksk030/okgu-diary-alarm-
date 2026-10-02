@@ -1,6 +1,6 @@
 {
   "repository": "https://github.com/cloudflare/cloudflare-docs",
-  "commit": "d6f73773e3da02537e272c07abc285caed2a4500",
+  "commit": "52f66cda7013e5fd9a4684015500ebd5734950bf",
   "verifiedAt": "2026-10-02",
   "retrieval": "HTTPS git proxy; official website URLs blocked by runtime egress policy",
   "files": [
@@ -10,6 +10,9 @@
     "d1/platform/limits.mdx",
     "partials/workers/d1-pricing.mdx",
     "r2/pricing.mdx",
-    "workers/ci-cd/builds/configuration.mdx"
+    "workers/ci-cd/builds/configuration.mdx",
+    "fundamentals/api/get-started/create-token.mdx",
+    "fundamentals/api/reference/permissions.mdx",
+    "fundamentals/account/find-account-and-zone-ids.mdx"
   ]
 }

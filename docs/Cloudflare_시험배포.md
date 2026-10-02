@@ -2,6 +2,10 @@
 
 운영 main과 GitHub Pages를 변경하지 않는 별도 시험 Worker입니다. Cloudflare 화면을 닫아도 GitHub에서 다시 연결할 수 있습니다. 현재 실제 배포는 하지 않았습니다.
 
+## 이번 시험의 권장 경로: Codex에서 CLI 배포
+
+[로그인·인증과 시험 실행](Cloudflare_로그인과시험실행.md)에 사용자 설정을 한 번에 정리했습니다. Cloudflare 토큰과 Account ID를 Codex 환경에 안전하게 연결하면 `npm run trial:launch`가 독립 시험 D1·비공개 R2를 생성/확인하고 build·migration·배포·가상 seed·health 확인까지 진행합니다. Git 연동 화면에서 Deploy를 누르는 것은 선행조건이 아닙니다. 아직 실제 인증·배포 URL은 없으며 아래 Git 연동 값은 대안입니다.
+
 ## Set up your application 입력값
 
 | 항목 | 정확한 값 |
@@ -18,7 +22,7 @@
 
 배포 스크립트도 `WORKERS_CI_BRANCH`를 확인하여 main과 다른 브랜치의 배포를 거부합니다. 하지만 Cloudflare 화면의 브랜치 연결을 바꾸는 대신 사용할 수는 없습니다. 기존 Pages 설정과 main에는 손대지 않습니다.
 
-## 처음 한 번 필요한 시험 리소스
+## Git 연동으로 배포할 경우 필요한 시험 리소스
 
 1. Storage & databases → D1 → Create Database에서 **okgu-diary-trial**을 만듭니다. 운영 자료를 넣지 않습니다.
 2. R2 Object Storage에서 **okgu-diary-trial-private** Standard 버킷을 만듭니다. Public development URL과 Custom domain은 활성화하지 않습니다. R2는 결제수단 등록/구독 동의 화면이 나올 수 있으므로 아래 비용을 먼저 검토하십시오. 이 작업은 아직 수행하지 않았습니다.
@@ -39,7 +43,7 @@
 
 ## 공식 요금과 예상 비용
 
-확인일 2026-10-02. 웹사이트 직접 접근이 이 Codex 환경의 egress 정책으로 차단되어 Cloudflare 공식 `cloudflare/cloudflare-docs` 최신 main 커밋 `d6f73773e3da02537e272c07abc285caed2a4500`의 문서를 HTTPS Git 경로로 읽었습니다. 실제 확인 SHA는 `docs/공식문서_출처.json`에 보존합니다. 계정의 결제 화면/기존 사용량은 확인하지 못했습니다. 미국 달러, 세금/환율 별도입니다.
+확인일 2026-10-02. 웹사이트 직접 접근이 이 Codex 환경의 egress 정책으로 차단되어 Cloudflare 공식 `cloudflare/cloudflare-docs` 최신 원격 HEAD 커밋 `52f66cda7013e5fd9a4684015500ebd5734950bf`의 문서를 HTTPS Git 경로로 읽었습니다. 실제 확인 SHA는 `docs/공식문서_출처.json`에 보존합니다. 계정의 결제 화면/기존 사용량은 확인하지 못했습니다. 미국 달러, 세금/환율 별도입니다.
 
 | 서비스 | 무료/포함 사용량 | 초과/유료 가격 |
 |---|---|---|

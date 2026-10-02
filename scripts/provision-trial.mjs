@@ -1,0 +1,4 @@
+import {requireTrialBranch,cloudflareClient,provisionTrial,saveTrialResources} from './lib/trial-cloudflare.mjs';
+requireTrialBranch();
+if(process.argv.includes('--plan')){console.log(JSON.stringify({mode:'read-only plan; no API calls',worker:'okgu-diary-trial',D1:'okgu-diary-trial',R2:'okgu-diary-trial-private',publicBucket:false,syntheticOnly:true,livePush:false,billingActivation:false,requiredSettings:['CLOUDFLARE_ACCOUNT_ID','CLOUDFLARE_API_TOKEN','network: api.cloudflare.com and *.workers.dev']},null,2));}
+else{const resources=await provisionTrial(cloudflareClient(),{existingId:process.env.OKGU_TRIAL_D1_DATABASE_ID});await saveTrialResources(resources);console.log('Trial D1 + private R2 verified and connection saved locally. Billing, operating resources and Supabase were not modified.');}

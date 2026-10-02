@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';import {readFile} from 'node:fs/promises';
-const base='http://127.0.0.1:3020';
+const base=process.env.OKGU_TRIAL_API_ORIGIN||'http://127.0.0.1:3020';
 async function call(token,method,args=[],extra={}){const r=await fetch(base+'/api/rpc',{method:'POST',headers:{Origin:base,'Content-Type':'application/json','X-OKGU-Request':'1',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify({method,args,requestId:randomUUID(),...extra})});return {status:r.status,value:await r.json()};}
 const login=async name=>{const r=await call('','login',[name,'0042',false]);assert.equal(r.status,200);return r.value.token;};
 let a,b,t;test.before(async()=>{[a,b,t]=await Promise.all(['시험학생11','시험학생12','가상교사'].map(login));});
