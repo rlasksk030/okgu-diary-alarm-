@@ -1,8 +1,22 @@
 # Cloudflare 로그인·인증과 가상 시험 실행 — 2026-10-02
 
-현재 작업: `rlasksk030/okgu-diary-alarm-`, `codex/2026-10-02-okgu-speed`. 시작 checkpoint는 `4ebf92c`이며 원격에서 이후 커밋이 없음을 확인했습니다. 실행 위치는 Codex 클라우드입니다. 실제 Cloudflare 시험 URL·배포 성능은 아직 없습니다.
+현재 작업: `rlasksk030/okgu-diary-alarm-`, `codex/2026-10-02-okgu-speed`. 시작 checkpoint는 `4ebf92c`이며 원격에서 이후 커밋이 없음을 확인했습니다. 실행 위치는 Codex 클라우드입니다. 실제 Cloudflare 시험 URL·배포 성능은 아직 없습니다. 인증/API 접근과 실제 시험 D1 생성·마이그레이션은 성공했고, R2 활성화 동의는 받았고, 사용자의 Cloudflare checkout 완료가 남아 있습니다.
 
-## 사용자가 한 번에 할 인증 설정
+## 최신 상태: R2 활성화 동의 완료·사용자 checkout 대기
+
+2026-10-02 **18:15 KST** 확인: token active·Account ID/API 접근 성공, 시험 D1 `okgu-diary-trial` 생성 및 migration 0001~0004 적용 성공(업무 테이블23개, accounts0). 실제 계정은 아직 seed하지 않았습니다. Worker build/dry-run도 통과했습니다. [실제 API/D1 확인 결과](검증/cloudflare-stage-readiness-20261002.json)에 비밀값 없이 보존했습니다.
+
+R2 조회는 HTTP403 / code10042, **Please enable R2 through the Cloudflare Dashboard**로 중단됐습니다. 실제 token/API 연결 문제와 다르며 token 재발급은 필요하지 않습니다. 현재 R2 bucket/Worker 배포/시험 URL/실제 속도는 미완료입니다. 아래 예전 인증 설정은 새 환경에서 재현할 때 사용합니다.
+
+사용자 다음 클릭은 Cloudflare **Storage & databases → R2 → Overview**의 checkout(구독 등록)입니다. 현재 공식 get-started 문서에서 이 경로와 R2 subscription 필요 조건을 직접 HTTPS로 확인했습니다. 마지막 결제 버튼의 문구/금액은 계정 화면을 직접 볼 수 없어 확정하지 않습니다. 결제수단 등록 및 과금 가능 구독의 활성화는 아래 비용을 검토하고 **사용자가 동의한 뒤** 진행합니다. Codex는 구독/결제를 활성화하지 않았습니다.
+
+사용자는 R2 결제수단 등록 및 활성화에 동의했습니다. Cloudflare checkout은 사용자가 직접 완료해야 하며 아직 완료됐다고 확인하지 않았습니다. 바로 열기: https://dash.cloudflare.com/?to=/:account/r2/overview
+
+R2 기본 월 구독료 $0, 이번 작은 가상 시험은 무료 할당 내 사용료 $0 예상입니다. 무료10GB-month·Class A100만·B1천만/월, 초과 저장$0.015/GB-month·A$4.50/백만·B$0.36/백만 및 요금 단위 올림이 적용됩니다. 무료 할당은 계정 전체와 공유하므로 기존 사용량이 있으면 시험에도 추가 과금이 생길 수 있습니다. Workers Paid 기본 $5/월은 R2 승인에 포함하지 않으며 실제 필요가 확인되면 별도 승인받습니다.
+
+R2 활성화 완료 후 바로 `npm run trial:launch`를 재실행합니다. 이미 생성한 시험 D1을 찾아 metadata를 검사하고 사용하므로 중복 D1을 만들지 않습니다. private R2 생성/검사 → Worker 배포 → 가상 seed → 실제 URL/health 확인 → `npm run trial:measure` 순서입니다.
+
+## 사용자가 한 번에 할 인증 설정 (이미 완료; 새 환경 재현용)
 
 Cloudflare 계정 화면을 직접 열어 확인하지는 못했습니다. 아래 메뉴/버튼은 2026-10-02 최신 공식 문서 기준이며 표시 언어에 따라 번역되어 있을 수 있습니다.
 
@@ -66,6 +80,6 @@ URL은 Cloudflare API에서 실제 계정 subdomain을 확인하고 `/api/health
 
 - 원격 브랜치는 `4ebf92c`, 운영 main은 `964985d3ff683617de18e89f71521f2c224d50f2`에서 시작했습니다. 새 코드는 작업 브랜치에만 보존합니다.
 - local `npm test` **33/33**, 브라우저 **16개** 통과; TypeScript check 통과. Cloudflare 생성 API는 mock이며 실제 배포 결과가 아닙니다.
-- 현재 실행 환경 token/account 변수 없음, wrangler 인증 없음. Cloudflare API는 proxy CONNECT403으로 차단되었습니다. 접속 정책 초안은 저장했지만 현재 환경 적용은 미완료입니다.
-- `trial:launch`는 credentials 누락에서 멈추고 원격 쓰기를 하지 않았습니다. `trial:measure`는 실제 시험 URL 없음으로 실행을 거부했습니다. 실제 시험 URL·최초 접속/저장 속도는 미측정입니다.
+- 초기 환경은 token/account 부재 및 proxy CONNECT403이었으나, 사용자 설정 후 현재는 token active 및 Cloudflare API/D1 접근이 성공했습니다. R2 subscription은 아직 비활성입니다.
+- 초기 `trial:launch`는 credentials 누락에서 멈췄고 최신 재실행은 시험 D1 생성/검사 후 R2 403/10042에서 중단됐습니다. 이어서 시험 D1 schema를 적용/검증했습니다. Worker 원격 배포와 trial:measure는 아직 미실행이며 실제 시험 URL·최초 접속/저장 속도는 미측정입니다.
 - 유료 활성화, 운영 main 병합/화면 교체, 실제 학생 자료/실제 푸시, Supabase, 별도 하루의 행간 저장소 변경은 수행하지 않았습니다. 잘못 전달된 하루의 행간 조사 문서는 이번 작업에 반입하지 않았습니다.

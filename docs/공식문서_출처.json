@@ -14,5 +14,14 @@
     "fundamentals/api/get-started/create-token.mdx",
     "fundamentals/api/reference/permissions.mdx",
     "fundamentals/account/find-account-and-zone-ids.mdx"
-  ]
+  ],
+  "liveVerification": {
+    "verifiedAt": "2026-10-02",
+    "retrieval": "Direct HTTPS through the configured session proxy, after network settings were applied; normal TLS verification",
+    "urls": [
+      "https://developers.cloudflare.com/r2/get-started/",
+      "https://developers.cloudflare.com/r2/pricing/"
+    ],
+    "confirmed": "R2 requires a dashboard checkout subscription; free quotas and overage unit prices unchanged"
+  }
 }

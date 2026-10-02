@@ -1,0 +1,40 @@
+{
+  "checkedAt": "2026-10-02T09:15:10.929Z",
+  "environment": "actual Cloudflare account API and D1; Worker not yet deployed",
+  "authentication": {
+    "tokenActive": true,
+    "accountAccessVerified": true,
+    "secretValuesRecorded": false
+  },
+  "trialD1": {
+    "name": "okgu-diary-trial",
+    "accounts": 0,
+    "migrations": [
+      "0001_d1.sql",
+      "0002_photos.sql",
+      "0003_upload_expiry.sql",
+      "0004_migration_guards.sql"
+    ],
+    "domainTables": 23
+  },
+  "worker": {
+    "buildPassed": true,
+    "dryRunPassed": true,
+    "deployed": false,
+    "workersDevSubdomainConfigured": true
+  },
+  "R2": {
+    "name": "okgu-diary-trial-private",
+    "created": false,
+    "providerStatus": 403,
+    "providerCode": 10042,
+    "blocker": "Please enable R2 through the Cloudflare Dashboard",
+    "activationAuthorizedByUser": true,
+    "userCheckoutCompleted": false
+  },
+  "billingActivatedByCodex": false,
+  "realStudentsUsed": false,
+  "livePushUsed": false,
+  "trialURL": null,
+  "deployedMeasurements": null
+}
