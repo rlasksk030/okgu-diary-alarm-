@@ -2,6 +2,10 @@
 
 운영 main과 기존 GitHub Pages 주소를 유지하는 별도 가상 시험입니다. **2026-10-03 최신: Paid 전환 없이1102 해결·실제13명 API/browser 실패0**. 같은600,000회 KDF만 무료 비공개 Durable Object로 분리했고 DB는 D1/사진은private R2입니다. 로그인/목록/글 속도 목표는 미달했습니다. [최신 원인·측정·비용](로그인_CPU_무료해결_2026-10-03.md). 실제 학생/main/Pages/실제 푸시는 최종 승인 전 변경하지 않습니다.
 
+## 최신 교사 학생 PIN 재설정
+
+기존 시험 주소에서 **가상교사 로그인 → 대시보드 → 학생 → PIN 재설정**을 사용할 수 있습니다. 시험학생09의 앞자리0 새 PIN 로그인, 모든 이전 세션 무효화와 다른 사용자/자료 보존을 실제 브라우저로 검증했습니다. 검증 뒤 공통 시험 PIN으로 복원했습니다. Worker version `eedbfe11-fb19-440a-860d-d856c0e171c4`. 새 사용자 인증·리소스·과금 설정은 필요 없습니다. [메뉴·검증·재현·한계](학생_PIN_재설정_2026-10-03.md).
+
 ## 이번 시험의 권장 경로: Codex에서 CLI 배포
 
 [로그인·인증과 시험 실행](Cloudflare_로그인과시험실행.md)에 사용자 설정을 한 번에 정리했습니다. Cloudflare 토큰과 Account ID를 Codex 환경에 안전하게 연결하면 `npm run trial:launch`가 독립 시험 D1·비공개 R2를 생성/확인하고 build·migration·배포·가상 seed·health 확인까지 진행합니다. Git 연동 화면에서 Deploy를 누르는 것은 선행조건이 아닙니다. 실제 시험 주소는 https://okgu-diary-trial.rlasksk030.workers.dev/okgu-diary-alarm-/ 입니다. 아래 Git 연동 값은 대안이며 이번 배포는 CLI로 수행했습니다. Git 연동 화면의 Deploy를 추가로 누를 필요가 없습니다.

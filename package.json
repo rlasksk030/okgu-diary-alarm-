@@ -28,7 +28,8 @@
     "test:visit": "node scripts/first-visit-test.mjs",
     "profile:login:cpu": "node --import tsx scripts/profile-login-cpu.mjs",
     "trial:trace-login": "node --use-env-proxy --import tsx scripts/trace-trial-login.mjs",
-    "test:ui:main": "node scripts/compare-main-ui.mjs"
+    "test:ui:main": "node scripts/compare-main-ui.mjs",
+    "test:pin-reset": "node --use-env-proxy scripts/student-pin-browser-test.mjs"
   },
   "dependencies": {
     "@noble/hashes": "2.4.0",

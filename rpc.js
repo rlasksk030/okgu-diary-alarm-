@@ -20,7 +20,7 @@ async function call(method,args,extra={}){
  if(method==='saveEntry'&&args[10])body.expectedVersion=extra.expectedVersion??window._fastEditingVersion??versions.get(args[10]);
  if(method==='deleteEntry'||method==='deleteEntryAsTeacher')body.expectedVersion=extra.expectedVersion??versions.get(args[1]);
  const key=JSON.stringify({method,args,extra,expectedVersion:body.expectedVersion,token});
- if(!reads.has(method)&&!['login','logout','changePin'].includes(method))body.requestId=attempts.get(key)||crypto.randomUUID();
+ if(!reads.has(method)&&!['login','logout','changePin'].includes(method))body.requestId=extra.requestId||attempts.get(key)||crypto.randomUUID();
  if(body.requestId)attempts.set(key,body.requestId);
  if(inflight.has(key))return inflight.get(key);
  const promise=(async()=>{const r=await request('/api/rpc',{method:'POST',headers:{'Content-Type':'application/json','X-OKGU-Request':'1',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(body)});const value=await r.json();if(generation!==epoch)throw new Error('계정이 변경되어 요청을 취소했어요.');record(value);attempts.delete(key);
