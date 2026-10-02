@@ -1,0 +1,16 @@
+import {readFile,writeFile} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
+const branch=process.env.WORKERS_CI_BRANCH||spawnSync('git',['branch','--show-current'],{encoding:'utf8'}).stdout.trim();
+if(branch!=='codex/2026-10-02-okgu-speed')throw new Error('Deployment blocked: only codex/2026-10-02-okgu-speed is allowed. main is never a deployment target.');
+const id=process.env.OKGU_TRIAL_D1_DATABASE_ID;
+if(!id||!/^[0-9a-f-]{36}$/i.test(id)||/^00000000-/.test(id))throw new Error('Set the dedicated trial D1 database ID in Cloudflare Build variables.');
+const frontend=process.env.OKGU_TRIAL_FRONTEND_ORIGIN||'';
+if(frontend&&(!/^https:\/\/[a-z0-9.-]+$/.test(frontend)||frontend==='https://rlasksk030.github.io'))throw new Error('Use a separate trial frontend origin; operating Pages is excluded until approval.');
+const config=JSON.parse(await readFile('wrangler.jsonc','utf8'));config.d1_databases[0].database_id=id;config.vars.WEB_ORIGINS=[process.env.OKGU_TRIAL_API_ORIGIN,frontend].filter(Boolean).join(',');config.vars.APP_URL=(frontend||process.env.OKGU_TRIAL_API_ORIGIN||'')+'/okgu-diary-alarm-/';
+// Same-origin trial UI is allowed automatically by the handler; no production origin added.
+config.vars.PUSH_MODE='disabled';config.triggers.crons=[];if(process.env.CLOUDFLARE_ACCOUNT_ID)config.account_id=process.env.CLOUDFLARE_ACCOUNT_ID;
+await writeFile('.wrangler-trial.json',JSON.stringify(config,null,2)+'\n',{mode:0o600});
+if(process.argv.includes('--prepare-only')){console.log('Trial-only config prepared; no remote changes.');process.exit(0);}
+const run=args=>{const p=spawnSync('node',['node_modules/wrangler/bin/wrangler.js',...args],{stdio:'inherit',env:{...process.env,WRANGLER_SEND_METRICS:'false'}});if(p.status!==0)process.exit(p.status||1);};
+run(['d1','migrations','apply','DB','--remote','--config','.wrangler-trial.json']);
+run(['deploy','--config','.wrangler-trial.json']);

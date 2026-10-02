@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {randomBytes} from 'node:crypto';
+import {DatabaseSync} from 'node:sqlite';
+import {plan,stableId} from '../migration/core.ts';
+import {d1Import} from '../migration/d1.ts';
+import {sealSnapshot,openSnapshot} from '../migration/snapshot.ts';
+import {reconcile,rollbackPlan} from '../migration/reconcile.ts';
+const snapshot=JSON.parse(await readFile('fixtures/snapshot.json','utf8'));
+test('synthetic snapshot has no schema/identity/reference issues',()=>assert.deepEqual(plan(snapshot).issues,[]));
+test('D1 SQL import can rerun without duplicates, preserves body/PIN/photo and reply references',async()=>{const db=new DatabaseSync(':memory:');try{db.exec(await readFile('migrations/0001_d1.sql','utf8'));const {sql}=d1Import(snapshot);db.exec(sql);const before=db.prepare('SELECT count(*) AS n FROM migration_records').get().n;db.exec(sql);assert.equal(db.prepare('SELECT count(*) AS n FROM migration_records').get().n,before);for(const row of snapshot.entities['일기기록']){const result=db.prepare('SELECT * FROM diaries WHERE legacy_id=?').get(row.id);assert.equal(result.body,row.cells['일기내용']);assert.equal(result.diary_date,row.cells['날짜']);assert.equal(result.author_id,stableId(snapshot.sourceId,'학생계정',row.accountRefs['학생이름']));}assert.equal(db.prepare('SELECT count(*) AS n FROM attachments').get().n,snapshot.files.length);assert.equal(db.prepare('SELECT pin_hash FROM credentials WHERE login_name=?').get('가상학생A').pin_hash,snapshot.entities['학생계정'][0].cells.PIN);for(const row of snapshot.entities['선생님댓글'])if(row.cells['부모댓글ID'])assert.equal(db.prepare('SELECT parent_id FROM diary_comments WHERE legacy_id=?').get(row.id).parent_id,stableId(snapshot.sourceId,'선생님댓글',row.cells['부모댓글ID']));}finally{db.close();}});
+test('schema drift, numeric PIN and missing identity fail planning',()=>{for(const alter of [s=>s.entities['학생계정'][0].cells.PIN=42,s=>s.entities['일기기록'][0].cells.UNKNOWN='x',s=>delete s.entities['일기기록'][0].accountRefs]){const s=structuredClone(snapshot);alter(s);assert(plan(s).issues.length);assert.throws(()=>d1Import(s));}});
+test('private visibility has priority over contradictory legacy flags',()=>{const s=structuredClone(snapshot);Object.assign(s.entities['일기기록'][0].cells,{'나만보기':true,'공개여부':true});const db=new DatabaseSync(':memory:');try{db.exec('PRAGMA foreign_keys=OFF');db.exec('CREATE TABLE x(id TEXT)');assert.match(d1Import(s).sql,/'private'/);}finally{db.close();}});
+test('encrypted snapshot roundtrip and tamper rejection',()=>{const key=randomBytes(32),sealed=sealSnapshot(snapshot,key);assert.deepEqual(openSnapshot(sealed,key),snapshot);assert.throws(()=>openSnapshot(sealed,randomBytes(32)));const bad={...sealed,sha256:'0'.repeat(64)};assert.throws(()=>openSnapshot(bad,key));});
+test('delta conflicts are flagged when target changed',()=>{const after=structuredClone(snapshot);after.entities['일기기록'][0].cells['일기내용']='가상 변경';const diff=reconcile(snapshot,after,{});assert(diff.some(d=>d.kind==='conflict-target-changed'));});

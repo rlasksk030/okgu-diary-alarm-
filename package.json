@@ -1,0 +1,32 @@
+{
+  "name": "okgu-diary-fast",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "start": "node scripts/start.mjs",
+    "seed": "node --import tsx scripts/seed.mjs",
+    "test": "node --import tsx --test tests/*.test.mjs",
+    "test:browser": "node --import tsx scripts/browser-test.mjs",
+    "test:load": "node --import tsx scripts/load-test.mjs",
+    "build:trial": "node scripts/build-trial.mjs",
+    "migrate": "node --import tsx scripts/migrate.mjs",
+    "backup": "node --import tsx scripts/backup.mjs",
+    "check": "tsc --noEmit",
+    "build": "node scripts/build-trial.mjs",
+    "build:local": "node scripts/build-trial.mjs --local",
+    "deploy:trial": "node scripts/deploy-trial.mjs"
+  },
+  "dependencies": {
+    "tsx": "4.20.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261002.1",
+    "@types/node": "24.10.1",
+    "playwright": "1.56.1",
+    "typescript": "5.9.3",
+    "wrangler": "4.146.0"
+  }
+}

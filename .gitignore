@@ -1,0 +1,15 @@
+node_modules/
+.local/
+trial-web/
+artifacts/
+.env
+.env.*
+!.env.example
+*.sqlite*
+*.backup
+*.enc
+
+.wrangler/
+.dev.vars*
+
+.wrangler-trial.json

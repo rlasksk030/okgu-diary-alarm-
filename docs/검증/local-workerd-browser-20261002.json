@@ -1,0 +1,87 @@
+{
+  "browser": "Linux Chromium; viewport only, not physical mobile devices",
+  "results": [
+    {
+      "name": "first visit and original login UI",
+      "ms": 469,
+      "result": "passed"
+    },
+    {
+      "name": "login with zero-prefixed PIN; no GAS request",
+      "ms": 1757,
+      "result": "passed"
+    },
+    {
+      "name": "text save committed then UI success",
+      "ms": 123,
+      "result": "passed"
+    },
+    {
+      "name": "quick diary saves through same authenticated server",
+      "ms": 1530,
+      "result": "passed"
+    },
+    {
+      "name": "binary photo upload and diary save",
+      "ms": 1638,
+      "result": "passed"
+    },
+    {
+      "name": "photo edit retains existing attachment",
+      "ms": 1527,
+      "result": "passed"
+    },
+    {
+      "name": "failed save preserves text and attachment; retry",
+      "ms": 1608,
+      "result": "passed"
+    },
+    {
+      "name": "search queries server; stat/calendar and authenticated photo load",
+      "ms": 1597,
+      "result": "passed"
+    },
+    {
+      "name": "revisit restores session; logout/account switch isolates data",
+      "ms": 1871,
+      "result": "passed"
+    },
+    {
+      "name": "teacher dashboard uses one bundle and existing renderers",
+      "ms": 2066,
+      "result": "passed"
+    },
+    {
+      "name": "no JavaScript exceptions and no chunking/GAS calls",
+      "ms": 1,
+      "result": "passed"
+    }
+  ],
+  "rpcMethods": [
+    "login",
+    "getStudentDashboard",
+    "getMyPushStatus",
+    "getNotifications",
+    "saveEntry",
+    "getStudentDashboard",
+    "saveEntry",
+    "getStudentDashboard",
+    "saveEntry",
+    "getStudentDashboard",
+    "getNotifications",
+    "saveEntry",
+    "getStudentDashboard",
+    "saveEntry",
+    "saveEntry",
+    "getStudentDashboard",
+    "searchEntries",
+    "getStudentDashboard",
+    "verifyToken",
+    "getStudentDashboard",
+    "getMyPushStatus",
+    "getNotifications",
+    "logout",
+    "login",
+    "getStudentDashboard"
+  ]
+}

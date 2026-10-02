@@ -1,0 +1,280 @@
+{
+  "format": 1,
+  "sourceId": "synthetic-okgu-v1",
+  "synthetic": true,
+  "complete": true,
+  "capturedAt": "2026-09-12T10:00:00Z",
+  "classId": "11111111-1111-4111-a111-111111111111",
+  "classLabel": "가상 6학년 1반",
+  "identityReviewed": true,
+  "entities": {
+    "학생계정": [
+      {
+        "id": "fixture-account-a",
+        "cells": {
+          "이름": "가상학생A",
+          "PIN": "sha256$fixture-salt$v/pyGLTCsAUpytzlZGe9zAXpwunmolgJsbEy1bJspLc=",
+          "역할": "학생",
+          "반": "가상 6학년 1반"
+        }
+      },
+      {
+        "id": "fixture-account-b",
+        "cells": {
+          "이름": "가상학생B",
+          "PIN": "sha256$fixture-salt$v/pyGLTCsAUpytzlZGe9zAXpwunmolgJsbEy1bJspLc=",
+          "역할": "학생",
+          "반": "가상 6학년 1반"
+        }
+      },
+      {
+        "id": "fixture-account-t",
+        "cells": {
+          "이름": "가상교사",
+          "PIN": "sha256$fixture-salt$v/pyGLTCsAUpytzlZGe9zAXpwunmolgJsbEy1bJspLc=",
+          "역할": "선생님",
+          "반": "가상 6학년 1반"
+        }
+      }
+    ],
+    "일기기록": [
+      {
+        "id": "fixture-diary-private",
+        "cells": {
+          "ID": "fixture-diary-private",
+          "날짜": "2026-09-12",
+          "학생이름": "가상학생A",
+          "기분이모지": "🙂",
+          "기분라벨": "좋아",
+          "기분색상": "#111",
+          "일기내용": "  가상 기록이에요.\n한글과 줄바꿈 🙂  ",
+          "비밀여부": false,
+          "공개여부": false,
+          "나만보기": true,
+          "저장시간": "2026-09-11T15:30:00.000Z",
+          "사진URLs": "[\"fixture-photo-1\"]"
+        },
+        "accountRefs": {
+          "학생이름": "fixture-account-a"
+        }
+      },
+      {
+        "id": "fixture-diary-teacher",
+        "cells": {
+          "ID": "fixture-diary-teacher",
+          "날짜": "2026-09-12",
+          "학생이름": "가상학생A",
+          "기분이모지": "🙂",
+          "기분라벨": "좋아",
+          "기분색상": "#111",
+          "일기내용": "  가상 기록이에요.\n한글과 줄바꿈 🙂  ",
+          "비밀여부": false,
+          "공개여부": false,
+          "나만보기": false,
+          "저장시간": "2026-09-11T15:30:00.000Z",
+          "사진URLs": "[]"
+        },
+        "accountRefs": {
+          "학생이름": "fixture-account-a"
+        }
+      },
+      {
+        "id": "fixture-diary-class",
+        "cells": {
+          "ID": "fixture-diary-class",
+          "날짜": "2026-09-12",
+          "학생이름": "가상학생A",
+          "기분이모지": "🙂",
+          "기분라벨": "좋아",
+          "기분색상": "#111",
+          "일기내용": "  가상 기록이에요.\n한글과 줄바꿈 🙂  ",
+          "비밀여부": false,
+          "공개여부": true,
+          "나만보기": false,
+          "저장시간": "2026-09-11T15:30:00.000Z",
+          "사진URLs": "[]"
+        },
+        "accountRefs": {
+          "학생이름": "fixture-account-a"
+        }
+      },
+      {
+        "id": "fixture-diary-b",
+        "cells": {
+          "ID": "fixture-diary-b",
+          "날짜": "2026-09-12",
+          "학생이름": "가상학생B",
+          "기분이모지": "🙂",
+          "기분라벨": "좋아",
+          "기분색상": "#111",
+          "일기내용": "  가상 기록이에요.\n한글과 줄바꿈 🙂  ",
+          "비밀여부": false,
+          "공개여부": false,
+          "나만보기": true,
+          "저장시간": "2026-09-11T15:30:00.000Z",
+          "사진URLs": "[]"
+        },
+        "accountRefs": {
+          "학생이름": "fixture-account-b"
+        }
+      }
+    ],
+    "게시판": [
+      {
+        "id": "fixture-diary-class",
+        "cells": {
+          "ID": "fixture-diary-class",
+          "작성자": "가상학생A",
+          "내용": "  게시판 가상 본문\n🙂  ",
+          "기분": "🙂",
+          "날짜표시": "9월 12일",
+          "좋아요수": 1,
+          "작성시간": "2026-09-11T15:30:00.000Z"
+        },
+        "accountRefs": {
+          "작성자": "fixture-account-a"
+        }
+      }
+    ],
+    "게시판댓글": [
+      {
+        "id": "fixture-bc-parent",
+        "cells": {
+          "ID": "fixture-bc-parent",
+          "게시글ID": "fixture-diary-class",
+          "작성자": "가상학생B",
+          "내용": "가상 댓글",
+          "작성시간": "2026-09-11T15:30:00.000Z",
+          "부모댓글ID": ""
+        },
+        "accountRefs": {
+          "작성자": "fixture-account-b"
+        }
+      },
+      {
+        "id": "fixture-bc-reply",
+        "cells": {
+          "ID": "fixture-bc-reply",
+          "게시글ID": "fixture-diary-class",
+          "작성자": "가상학생A",
+          "내용": "가상 답글",
+          "작성시간": "2026-09-11T15:30:00.000Z",
+          "부모댓글ID": "fixture-bc-parent"
+        },
+        "accountRefs": {
+          "작성자": "fixture-account-a"
+        }
+      }
+    ],
+    "게시판좋아요": [
+      {
+        "id": "fixture-like-b-class",
+        "cells": {
+          "게시글ID": "fixture-diary-class",
+          "학생이름": "가상학생B"
+        },
+        "accountRefs": {
+          "학생이름": "fixture-account-b"
+        }
+      }
+    ],
+    "칭찬메시지": [
+      {
+        "id": "fixture-praise",
+        "cells": {
+          "ID": "fixture-praise",
+          "보낸사람": "가상학생A",
+          "받는사람": "가상학생B",
+          "메시지": "가상 칭찬 🙂",
+          "작성시간": "2026-09-11T15:30:00.000Z",
+          "읽음여부": false,
+          "익명여부": true,
+          "숨김여부": false,
+          "승인상태": ""
+        },
+        "accountRefs": {
+          "보낸사람": "fixture-account-a",
+          "받는사람": "fixture-account-b"
+        }
+      }
+    ],
+    "선생님댓글": [
+      {
+        "id": "fixture-tc",
+        "cells": {
+          "ID": "fixture-tc",
+          "일기ID": "fixture-diary-teacher",
+          "선생님이름": "가상교사",
+          "댓글내용": "가상 선생님 댓글",
+          "작성시간": "2026-09-11T15:30:00.000Z",
+          "역할": "선생님",
+          "부모댓글ID": ""
+        },
+        "accountRefs": {
+          "선생님이름": "fixture-account-t"
+        }
+      }
+    ],
+    "학생태그": [
+      {
+        "id": "fixture-flag-a",
+        "cells": {
+          "이름": "가상학생A",
+          "상담필요": true,
+          "메모": "가상 상담 메모",
+          "설정자": "가상교사",
+          "설정시간": "2026-09-11T15:30:00.000Z"
+        },
+        "accountRefs": {
+          "이름": "fixture-account-a",
+          "설정자": "fixture-account-t"
+        }
+      }
+    ],
+    "알림": [
+      {
+        "id": "fixture-notification",
+        "cells": {
+          "ID": "fixture-notification",
+          "받는사람": "가상학생A",
+          "유형": "comment",
+          "제목": "가상 알림",
+          "내용": "가상 내용",
+          "링크ID": "fixture-tc",
+          "생성시간": "2026-09-11T15:30:00.000Z",
+          "읽음여부": false
+        },
+        "accountRefs": {
+          "받는사람": "fixture-account-a"
+        }
+      }
+    ],
+    "푸시구독": [
+      {
+        "id": "fixture-push-a",
+        "cells": {
+          "이름": "가상학생A",
+          "역할": "학생",
+          "Endpoint": "https://example.invalid/push",
+          "SubscriptionJSON": "{}",
+          "등록시간": "2026-09-11T15:30:00.000Z",
+          "활성": false
+        },
+        "accountRefs": {
+          "이름": "fixture-account-a"
+        }
+      }
+    ]
+  },
+  "files": [
+    {
+      "id": "fixture-photo-1",
+      "diaryId": "fixture-diary-private",
+      "ordinal": 0,
+      "path": "photo.png",
+      "sha256": "c083616b1caeef46add7b227c626accc1ee212b678715edc4db14aa0bdaea63f",
+      "size": 68,
+      "mime": "image/png"
+    }
+  ]
+}

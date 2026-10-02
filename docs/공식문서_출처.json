@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/cloudflare/cloudflare-docs",
+  "commit": "d6f73773e3da02537e272c07abc285caed2a4500",
+  "verifiedAt": "2026-10-02",
+  "retrieval": "HTTPS git proxy; official website URLs blocked by runtime egress policy",
+  "files": [
+    "workers/platform/pricing.mdx",
+    "workers/platform/limits.mdx",
+    "d1/platform/pricing.mdx",
+    "d1/platform/limits.mdx",
+    "partials/workers/d1-pricing.mdx",
+    "r2/pricing.mdx",
+    "workers/ci-cd/builds/configuration.mdx"
+  ]
+}
