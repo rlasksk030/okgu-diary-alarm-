@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-10-03T13:17:00.158Z",
+  "environment": "actual uploaded backup + supplied GAS code in isolated mock; NOT live teacher response",
+  "backupCapturedAt": "2026-10-03T10:53:01.080Z",
+  "suppliedCodeQuerySucceeded": true,
+  "returnedRows": 13,
+  "canonicalDateCount": 13,
+  "sourceMutationAttempts": 0,
+  "liveSourceRead": false,
+  "incidentCauseConfirmed": false
+}

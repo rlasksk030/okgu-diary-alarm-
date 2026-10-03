@@ -1,0 +1,8 @@
+{
+  "checkedAt": "2026-10-03T13:57:34.255364+00:00",
+  "environment": "isolated callback/source mock only; NOT live export or incident confirmation",
+  "tests": 13,
+  "pass": 13,
+  "fail": 0,
+  "typecheckPassed": true
+}

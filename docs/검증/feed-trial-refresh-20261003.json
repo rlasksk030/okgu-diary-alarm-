@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-03T13:48:29.763Z",
+  "environment": "actual Cloudflare trial API/D1 + Linux Chromium; synthetic only",
+  "newWriteAfterOldResponseCaptured": true,
+  "freshQueryCount": 2,
+  "latestDiaryVisible": true,
+  "failedQueryDistinguishedFromEmpty": true,
+  "draftPreserved": true,
+  "draftPreservationScope": "existing textarea value; hidden on teacher dashboard, not a student composing flow",
+  "retrySucceeded": true,
+  "frontendMatchesSource": true,
+  "gasRequests": 0,
+  "actualPushMessages": 0,
+  "physicalPhoneVerified": false,
+  "operatingIncidentResolved": false
+}

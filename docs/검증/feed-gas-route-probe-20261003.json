@@ -1,0 +1,33 @@
+{
+  "checkedAt": "2026-10-03T13:10:09.947Z",
+  "authenticatedTeacherResponse": false,
+  "sourceWritesRequested": false,
+  "results": [
+    {
+      "method": "verifyToken",
+      "emptyToken": true,
+      "httpStatus": 200,
+      "responseHost": "script.googleusercontent.com",
+      "ms": 1480,
+      "jsonpEnvelopeParsed": true,
+      "envelopeOk": true,
+      "resultType": "object",
+      "recordCount": null,
+      "resultCode": "E_AUTH",
+      "errorCategory": null
+    },
+    {
+      "method": "getRecentEntries",
+      "emptyToken": true,
+      "httpStatus": 200,
+      "responseHost": "script.googleusercontent.com",
+      "ms": 1291,
+      "jsonpEnvelopeParsed": true,
+      "envelopeOk": true,
+      "resultType": "array",
+      "recordCount": 0,
+      "resultCode": null,
+      "errorCategory": null
+    }
+  ]
+}

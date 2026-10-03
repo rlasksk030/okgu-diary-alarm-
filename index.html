@@ -3212,6 +3212,8 @@ let _feedLimit = FEED_PAGE_SIZE;
 let _feedOffset = 0;
 let _feedHasMore = false;
 let _feedLoading = false;
+let _feedRefreshPending = false;
+let _feedRequestGeneration = 0;
 // dashPeriod / trendPeriod 은 loadDashboard 위쪽에서 선언
 const MOODS = [
   {emoji:'😄',label:'신남',color:'#111'},
@@ -3561,43 +3563,71 @@ function deletePraiseMod(praiseId){
 
 function loadFeed(reset){
   const isReset = reset !== false;
-  if(_feedLoading) return;
+  // A notification/dashboard refresh must survive an older request in flight.
+  if(_feedLoading){ if(isReset) _feedRefreshPending = true; return; }
   _feedLoading = true;
+  _feedRefreshPending = false;
+  const generation = ++_feedRequestGeneration;
+  const owner = currentUser, token = _getToken();
+  function current(){
+    if(generation !== _feedRequestGeneration) return false;
+    if(owner !== currentUser || token !== _getToken()){
+      _feedLoading = false; _feedRefreshPending = false;
+      feedEntries = []; _feedOffset = 0; _feedHasMore = false;
+      const list = document.getElementById('feed-list'); if(list) list.replaceChildren();
+      return false;
+    }
+    return true;
+  }
+  function refreshQueued(){
+    if(!_feedRefreshPending) return false;
+    _feedLoading = false; _feedRefreshPending = false;
+    loadFeed(true); return true;
+  }
+  function failed(e){
+    if(!current() || refreshQueued()) return;
+    _feedLoading = false;
+    const el = document.getElementById('feed-list');
+    if(el && isReset) el.innerHTML = '<div class="no-entry">'+
+      (e && e.code === 'E_AUTH' ? '로그인이 만료되었어요. 다시 로그인해주세요.' : '피드를 불러오지 못했어요')+'</div>';
+    const more = document.getElementById('feed-loadmore');
+    if(more){ more.disabled = false; more.textContent = '이전 일기 더 보기'; }
+  }
   if(isReset){
-    _feedLimit = FEED_PAGE_SIZE;
-    _feedOffset = 0;
-    feedEntries = [];
+    _feedLimit = FEED_PAGE_SIZE; _feedOffset = 0; feedEntries = [];
     document.getElementById('feed-list').innerHTML='<div class="no-entry">불러오는 중...</div>';
   } else {
     const more = document.getElementById('feed-loadmore');
     if(more){ more.disabled = true; more.textContent = '불러오는 중...'; }
   }
   const pageOffset = isReset ? 0 : _feedOffset;
-  google.script.run
-    .withSuccessHandler(function(res){
+  function received(res){
+    if(!current() || refreshQueued()) return;
+    if(res && res.success === false){ failed({code:res.code}); return; }
+    if(!Array.isArray(res) && !(res && Array.isArray(res.entries))){ failed({code:'E_RESPONSE'}); return; }
+    const rows = Array.isArray(res) ? res : res.entries;
+    function display(){
+      if(!current() || refreshQueued()) return;
       _feedLoading = false;
-      const rows = Array.isArray(res) ? res : ((res && res.entries) ? res.entries : []);
       const newRows = Array.isArray(res) ? rows.slice(0, FEED_PAGE_SIZE) : rows;
-      _feedHasMore = Array.isArray(res) ? rows.length > FEED_PAGE_SIZE : !!(res && res.hasMore);
+      _feedHasMore = Array.isArray(res) ? rows.length > FEED_PAGE_SIZE : !!res.hasMore;
       const startIdx = feedEntries.length;
-      if(isReset){
-        feedEntries = newRows;
-        _feedOffset = newRows.length;
-        renderFeed();
-      } else {
-        feedEntries = feedEntries.concat(newRows);
-        _feedOffset += newRows.length;
-        renderFeedAppend(startIdx, newRows);
-      }
+      if(isReset){ feedEntries = newRows; _feedOffset = newRows.length; renderFeed(); }
+      else { feedEntries = feedEntries.concat(newRows); _feedOffset += newRows.length; renderFeedAppend(startIdx, newRows); }
       tryDeepLinkAfterRender();
-    })
-    .withFailureHandler(function(e){
-      _feedLoading = false;
-      console.error(e);
-      const el = document.getElementById('feed-list');
-      if(el && isReset) el.innerHTML = '<div class="no-entry">피드를 불러오지 못했어요</div>';
-    })
-    .getRecentEntries(_getToken(), FEED_PAGE_SIZE + 1, pageOffset);
+    }
+    // Legacy GAS uses [] for an invalid teacher token. Do not show that as
+    // "no diaries". Cloudflare rejects an invalid session with HTTP 401.
+    if(rows.length === 0 && !window.OKGUAPI){
+      google.script.run.withSuccessHandler(function(auth){
+        if(!current() || refreshQueued()) return;
+        if(!auth || !auth.success || auth.role !== '선생님') failed({code:'E_AUTH'});
+        else display();
+      }).withFailureHandler(failed).verifyToken(token);
+    } else display();
+  }
+  google.script.run.withSuccessHandler(received).withFailureHandler(failed)
+    .getRecentEntries(token, FEED_PAGE_SIZE + 1, pageOffset);
 }
 
 function loadMoreFeed(){

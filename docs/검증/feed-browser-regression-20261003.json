@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-10-03T13:24:34.800Z",
+  "environment": "Linux Chromium intercepted app; synthetic only; NOT live incident confirmation",
+  "results": [
+    {
+      "check": "baseline stale feed reproduced in Chromium",
+      "passed": true
+    },
+    {
+      "check": "queued refresh shows newest response, suppresses older DOM",
+      "passed": true
+    },
+    {
+      "check": "owner diagnostic download excludes names/body/IDs/tokens; classifies server error",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-03T13:59:10.080Z",
+  "trialPushMode": "disabled",
+  "trialCronCount": 0,
+  "trialWebOrigins": [
+    "https://okgu-diary-trial.rlasksk030.workers.dev",
+    "https://okgu-diary-pages-trial.rlasksk030.workers.dev"
+  ],
+  "googleConnections": 0,
+  "googleOutboundIdentities": 0,
+  "sharedUserChromeAvailable": false,
+  "authenticatedOperatingTeacherResponse": false,
+  "liveSourceDeltaRead": false,
+  "sourceFrozen": false,
+  "productionSwitched": false,
+  "operatingIncidentResolved": false
+}

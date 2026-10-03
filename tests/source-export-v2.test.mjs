@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';import {createHash} from 'node:crypto';import {Script,createContext} from 'node:vm';
-async function setup(){
- const code=await readFile('migration/source/ReadOnlyExportV2.gs','utf8');let uid=0,rootWrites=0,tick=0,partial=true;
+async function setup(codePath='migration/source/ReadOnlyExportV2.gs'){
+ const code=await readFile(codePath,'utf8');let uid=0,rootWrites=0,tick=0,partial=true,anonymous=false;
  const files=new Map(),folders=new Map(),props=new Map([['OKGU_SOURCE_SPREADSHEET_ID','original-sheet']]);
  const it=a=>{let i=0;return {hasNext:()=>i<a.length,next:()=>a[i++]};};
  const blob=(b,name='photo',mime='image/jpeg')=>({getBytes:()=>[...Buffer.from(b)],getDataAsString:()=>Buffer.from(b).toString(),getContentType:()=>mime,getName:()=>name,copyBlob:()=>blob(b,name,mime),setName(n){name=n;return this;}});
@@ -10,9 +10,9 @@ async function setup(){
  const root=makeFolder('root',true);const originals=[makeFile('photo-1','fake-original-1',root,true),makeFile('photo-2','fake-original-2',root,true)];root.getFiles=()=>it(originals);
  let rows=[['fake-diary','["https://drive.google.com/thumbnail?id=photo-1&sz=w600"]']];
  const sheet={getName:()=> '일기기록',getDataRange:()=>({getValues:()=>[['날짜',''],...rows],getDisplayValues:()=>[['날짜',''],...rows],getNumberFormats:()=>[['@','@'],...rows.map(()=>['@','@'])],getFormulas:()=>[['',''],...rows.map(()=>['',''])]}),getLastRow:()=>rows.length+1,getLastColumn:()=>2};
- const context=createContext({console:{log(){}},Date:class extends Date{static now(){return tick;}},LockService:{getScriptLock:()=>({tryLock:()=>true,releaseLock(){}})},PropertiesService:{getScriptProperties:()=>({getProperty:k=>props.get(k),setProperties:o=>Object.entries(o).forEach(([k,v])=>props.set(k,v)),deleteProperty:k=>props.delete(k)})},SpreadsheetApp:{openById:id=>{assert.equal(id,'original-sheet');return {getSheets:()=>[sheet],getSpreadsheetTimeZone:()=> 'Asia/Seoul'};}},DriveApp:{Access:{PRIVATE:'PRIVATE'},Permission:{NONE:'NONE'},getFolderById:id=>folders.get(id),getFileById:id=>files.get(id),getFoldersByName:name=>{assert.equal(name,'OKGU_DIARY_사진');return it([root]);},createFolder:()=>makeFolder('backup-'+(++uid))},Utilities:{DigestAlgorithm:{SHA_256:'sha256'},computeDigest:(_alg,b)=>[...createHash('sha256').update(Buffer.from(b)).digest()],newBlob:s=>blob(s),formatDate:()=> 'fake-date'},MimeType:{PLAIN_TEXT:'text/plain'}});
+ const context=createContext({console:{log(){}},SPREADSHEET_ID:'original-sheet',Session:{getActiveUser:()=>({getEmail:()=>anonymous?'':'owner@example.invalid'}),getEffectiveUser:()=>({getEmail:()=> 'owner@example.invalid'}),getScriptTimeZone:()=> 'Asia/Seoul'},ScriptApp:{getProjectTriggers:()=>[{getUniqueId:()=> 'fake-trigger',getHandlerFunction:()=> 'scheduledDiaryReminderPush',getTriggerSource:()=> 'CLOCK',getEventType:()=> 'CLOCK'}]},Date:class extends Date{static now(){return tick;}},LockService:{getScriptLock:()=>({tryLock:()=>true,releaseLock(){}})},PropertiesService:{getScriptProperties:()=>({getProperty:k=>props.get(k),setProperty(k,v){props.set(k,v);},setProperties:o=>Object.entries(o).forEach(([k,v])=>props.set(k,v)),deleteProperty:k=>props.delete(k)})},SpreadsheetApp:{openById:id=>{assert.equal(id,'original-sheet');return {getSheets:()=>[sheet],getSpreadsheetTimeZone:()=> 'Asia/Seoul'};}},DriveApp:{Access:{PRIVATE:'PRIVATE'},Permission:{NONE:'NONE'},getFolderById:id=>folders.get(id),getFileById:id=>files.get(id),getFoldersByName:name=>{assert.equal(name,'OKGU_DIARY_사진');return it([root]);},createFolder:()=>makeFolder('backup-'+(++uid))},Utilities:{DigestAlgorithm:{SHA_256:'sha256'},computeDigest:(_alg,b)=>[...createHash('sha256').update(Buffer.from(b)).digest()],newBlob:s=>blob(s),formatDate:()=> 'fake-date'},MimeType:{PLAIN_TEXT:'text/plain'}});
  new Script(code).runInContext(context);
- return {context,props,folders,files,rootWrites:()=>rootWrites,resume(){partial=false;tick=0;},change(){rows[0][0]='changed';}};
+ return {context,props,folders,files,rootWrites:()=>rootWrites,resume(){partial=false;tick=0;},anonymous(){anonymous=true;},change(){rows[0][0]='changed';}};
 }
 test('read-only exporter handles actual header drift, resumes without duplicate photo copies, keeps original IDs and verifies full photos',async()=>{
  const m=await setup();let r=m.context.exportOkguReadOnly();assert.equal(r.complete,false);assert.equal(r.copied,1);
@@ -25,4 +25,16 @@ test('read-only exporter handles actual header drift, resumes without duplicate 
 test('source row changes prevent a complete final snapshot and preserve the old backup',async()=>{
  const m=await setup();m.context.exportOkguReadOnly();m.change();m.resume();assert.throws(()=>m.context.exportOkguReadOnly(),/SOURCE_CHANGED_START_NEW_BACKUP/);
  const originalFolder=m.props.get('OKGU_PRIVATE_BACKUP_FOLDER_ID');const r=m.context.startNewOkguBackup();assert.equal(r.complete,true);assert(m.folders.has(originalFolder));assert.notEqual(m.props.get('OKGU_PRIVATE_BACKUP_FOLDER_ID'),originalFolder);assert.equal(m.rootWrites(),0);
+});
+
+test('operating helper reuses existing ID, resumes, records clock metadata and exports no session properties',async()=>{
+ const m=await setup('migration/source/ReadOnlyOperationalExport.gs');m.props.set('tok_fake','sensitive-fake-session');
+ assert.equal(m.context.backupOkguWithKnownSource().complete,false);m.resume();assert.equal(m.context.backupOkguWithKnownSource().complete,true);
+ const f=m.folders.get(m.props.get('OKGU_PRIVATE_BACKUP_FOLDER_ID')),text=f.getFilesByName('operating-runtime.private.json').next().getBlob().getDataAsString(),metadata=JSON.parse(text);
+ assert.equal(metadata.projectTimeZone,'Asia/Seoul');assert.equal(metadata.triggers[0].handler,'scheduledDiaryReminderPush');assert.equal(metadata.writePauseProperty,false);assert(!text.includes('sensitive-fake-session'));assert.equal(m.rootWrites(),0);assert.equal(m.props.get('tok_fake'),'sensitive-fake-session');
+});
+test('anonymous web calls cannot create/export/reset an operating backup',async()=>{
+ const m=await setup('migration/source/ReadOnlyOperationalExport.gs');m.anonymous();
+ for(const name of ['backupOkguWithKnownSource','exportOkguReadOnly','startNewOkguBackup','_okguBackupStep_'])assert.throws(()=>m.context[name](),/MANUAL_OWNER_EXECUTION_REQUIRED/);
+ assert.equal(m.props.get('OKGU_BACKUP_STATE_FILE'),undefined);assert.equal(m.rootWrites(),0);
 });
