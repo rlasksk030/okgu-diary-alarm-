@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-10-03T12:46:06.735Z",
+  "trialVersion": "884a7624-4dbb-4a14-a369-d2f692a95114",
+  "pushMode": "disabled",
+  "cronCount": 0,
+  "managedR2Public": false,
+  "customR2DomainCount": 0,
+  "health": {
+    "ok": true,
+    "runtime": "Cloudflare Workers",
+    "storage": "D1 + private R2",
+    "push": "disabled",
+    "writes": "active",
+    "version": "cf-20261002"
+  },
+  "productionWorkerStatus": 404,
+  "trialNightlyJobCounts": [],
+  "productionModified": false,
+  "trialVersionRecordedAt": "2026-10-03T12:49:42.945Z"
+}

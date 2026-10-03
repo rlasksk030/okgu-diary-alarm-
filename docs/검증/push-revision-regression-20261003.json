@@ -1,0 +1,150 @@
+{
+  "apiOrigin": "synthetic trial only",
+  "results": [
+    {
+      "file": "auth-login.test.mjs",
+      "exit": 0,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "deletion-delta.test.mjs",
+      "exit": 0,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "delta-backup.test.mjs",
+      "exit": 0,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "diary-order.test.mjs",
+      "exit": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "display-time.test.mjs",
+      "exit": 0,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "errors.test.mjs",
+      "exit": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "maintenance.test.mjs",
+      "exit": 0,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "migration.test.mjs",
+      "exit": 0,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "pbkdf2.test.mjs",
+      "exit": 0,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "pin-kdf.test.mjs",
+      "exit": 0,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "push-photo.test.mjs",
+      "exit": 0,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "push-reliability.test.mjs",
+      "exit": 0,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "read-batching.test.mjs",
+      "exit": 0,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "source-export-v2.test.mjs",
+      "exit": 0,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "student-pin.test.mjs",
+      "exit": 0,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "trial-deploy.test.mjs",
+      "exit": 0,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "worker.test.mjs",
+      "exit": 0,
+      "tests": 15,
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "write-barrier.test.mjs",
+      "exit": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    }
+  ],
+  "allPassed": true
+}

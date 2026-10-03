@@ -1,0 +1,9 @@
+{
+  "checkedAt": "2026-10-03T12:49:42.917Z",
+  "environment": "isolated local model/mock Google/mocked push; no actual messages",
+  "tests": 23,
+  "pass": 23,
+  "fail": 0,
+  "cancelled": 0,
+  "skipped": 0
+}

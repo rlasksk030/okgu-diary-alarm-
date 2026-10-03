@@ -1,0 +1,26 @@
+{
+  "mode": "offline private candidate only",
+  "identityReviewed": false,
+  "counts": {
+    "학생계정": 14,
+    "알림": 10,
+    "푸시구독": 10,
+    "학생태그": 3,
+    "선생님댓글": 386,
+    "게시판좋아요": 67,
+    "게시판댓글": 550,
+    "일기기록": 452,
+    "칭찬메시지": 310,
+    "게시판": 129
+  },
+  "photos": 37,
+  "archivedOriginalRelationships": 11,
+  "archivedFlagsWithoutRecord": 1,
+  "archivedDuplicateLikes": 2,
+  "teacherBlankClassExplicitMappings": 1,
+  "issueCounts": {
+    "INCOMPLETE_OR_UNREVIEWED": 1
+  },
+  "sourceWrites": false,
+  "remoteImport": false
+}

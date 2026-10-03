@@ -6,13 +6,10 @@ if(!input)throw Error('E_PRIVATE_SERVER_FILE_REQUIRED');
 const raw=await readFile(input,'utf8');
 const id=/(?:const|var|let)\s+SPREADSHEET_ID\s*=\s*['"]([A-Za-z0-9_-]+)['"]/.exec(raw)?.[1];
 if(!id)throw Error('E_ORIGINAL_SHEET_ID');
-const exporter=await readFile('migration/source/ReadOnlyExport.gs','utf8');
-const code='// Owner-only private helper. Do not publish/deploy/share this project.\n'+
+const exporter=await readFile('migration/source/ReadOnlyExportV2.gs','utf8');
+const code='// Owner-only private helper. Do not publish/deploy/share this NEW project.\n'+
  'function backupOkguWithKnownSource() {\n'+
- '  const folder = DriveApp.createFolder("옥구_이전백업_"+Utilities.formatDate(new Date(),"Asia/Seoul","yyyyMMdd_HHmmss"));\n'+
- '  folder.setSharing(DriveApp.Access.PRIVATE, DriveApp.Permission.NONE);\n'+
- '  if (folder.getSharingAccess() !== DriveApp.Access.PRIVATE || folder.getEditors().length || folder.getViewers().length) throw new Error("OWNER_ONLY_BACKUP_FOLDER_REQUIRED");\n'+
- '  PropertiesService.getScriptProperties().setProperties({OKGU_SOURCE_SPREADSHEET_ID:'+JSON.stringify(id)+',OKGU_PRIVATE_BACKUP_FOLDER_ID:folder.getId()});\n'+
+ '  PropertiesService.getScriptProperties().setProperty("OKGU_SOURCE_SPREADSHEET_ID",'+JSON.stringify(id)+');\n'+
  '  return exportOkguReadOnly();\n}\n\n'+exporter;
 new Script(code); // Syntax only: never executes any Google service.
 await mkdir('.local/private-source-export',{recursive:true,mode:0o700});

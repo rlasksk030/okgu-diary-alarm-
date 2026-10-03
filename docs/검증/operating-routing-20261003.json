@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-10-03T11:48:42.219Z",
+  "operatingPagesHttp": 200,
+  "pagesHasGasEndpoint": true,
+  "pagesHasCloudflareAdapter": false,
+  "gasEndpointFingerprint": "1a3facfada9d7583248ef2aeddf321fbe1903c6314bfb7a70c9f986359064cd7",
+  "productionWorker": "absent",
+  "trialAccountProvenanceVerified": true,
+  "trialAccountCounts": [
+    {
+      "role": "student",
+      "active": 1,
+      "n": 16
+    },
+    {
+      "role": "teacher",
+      "active": 0,
+      "n": 1
+    },
+    {
+      "role": "teacher",
+      "active": 1,
+      "n": 2
+    }
+  ],
+  "trialPushMode": "disabled",
+  "trialHealth": {
+    "ok": true,
+    "runtime": "Cloudflare Workers",
+    "storage": "D1 + private R2",
+    "push": "disabled",
+    "writes": "active",
+    "version": "cf-20261002"
+  }
+}

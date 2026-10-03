@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-10-03T12:50:39.242Z",
+  "environment": "actual Cloudflare trial Worker/D1",
+  "syntheticOnly": true,
+  "pushMode": "disabled",
+  "actualMessages": 0,
+  "success": true,
+  "checks": [
+    "one committed diary and teacher job after duplicate retry",
+    "teacher diary comment notifies owner only",
+    "student reply notifies teacher and excludes author",
+    "board comment preserves owner and teacher recipients; author excluded",
+    "like teacher message from committed toggle",
+    "unlike teacher message from committed toggle",
+    "praise approval queues once for its recipient",
+    "delete teacher activity opens original dashboard route"
+  ],
+  "physicalReceiptVerified": false,
+  "workerVersion": "884a7624-4dbb-4a14-a369-d2f692a95114"
+}

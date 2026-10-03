@@ -1,0 +1,63 @@
+{
+  "format": 1,
+  "source": "owner-uploaded-private-zip",
+  "capturedAt": "2026-10-03T10:53:01.080Z",
+  "sheetCount": 10,
+  "rowCounts": {
+    "학생계정": 14,
+    "알림": 10,
+    "푸시구독": 10,
+    "학생태그": 3,
+    "선생님댓글": 386,
+    "게시판좋아요": 67,
+    "게시판댓글": 550,
+    "일기기록": 452,
+    "칭찬메시지": 310,
+    "게시판": 129
+  },
+  "physicalRowCounts": {
+    "학생계정": 14,
+    "알림": 10,
+    "푸시구독": 10,
+    "학생태그": 3,
+    "선생님댓글": 386,
+    "게시판좋아요": 67,
+    "게시판댓글": 550,
+    "일기기록": 452,
+    "칭찬메시지": 314,
+    "게시판": 129
+  },
+  "workbookCellMismatches": 0,
+  "canonicalCandidateChangedValues": false,
+  "headerDriftSheets": 4,
+  "semanticMappingReviewed": false,
+  "positionChecksRequireCurrentCodeConfirmation": true,
+  "accounts": {
+    "total": 14,
+    "students": 13,
+    "teachers": 1,
+    "existingSha256Pins": 14,
+    "blankTeacherClass": 1
+  },
+  "photos": {
+    "files": 68,
+    "bytes": 3775369,
+    "originalToCopyIdChanges": 68,
+    "checksumOrSizeMismatches": 0,
+    "references": 37,
+    "uniqueReferenced": 35,
+    "missingReferenced": 0,
+    "manifestMappingMismatches": 0,
+    "unreferenced": 33,
+    "zeroByteUnreferenced": 1
+  },
+  "sourceRelationshipIssues": {
+    "diaryCommentWithoutDiary": 4,
+    "boardCommentWithoutPost": 4,
+    "likeWithoutPost": 3,
+    "praiseWithoutIdOrActors": 1
+  },
+  "sourceWrites": false,
+  "imported": false,
+  "finalDeltaAcquired": false
+}

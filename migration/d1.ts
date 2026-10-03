@@ -1,10 +1,10 @@
-import {plan,stableId,visibility,sha,type Snapshot} from './core';
+import {plan,stableId,visibility,sha,sourcePushSubscription,type Snapshot} from './core';
 const literal=(value:any)=>value===null||value===undefined?'NULL':typeof value==='number'?String(value):typeof value==='boolean'?(value?'1':'0'):"'"+String(value).replace(/'/g,"''")+"'";
 const insert=(table:string,data:Record<string,any>)=>`INSERT INTO ${table}(${Object.keys(data).join(',')}) VALUES(${Object.values(data).map(literal).join(',')}) ON CONFLICT DO NOTHING;`;
 export function d1Import(snapshot:Snapshot){const checked=plan(snapshot);if(checked.issues.length)throw new Error('IMPORT_PLAN_HAS_ISSUES');const sql:string[]=[insert('classes',{id:snapshot.classId,label:snapshot.classLabel})];const batch=sha(JSON.stringify(snapshot)).slice(0,24),id=(entity:string,key:any)=>stableId(snapshot.sourceId,entity,String(key));const ref=(row:any,field:string)=>row.accountRefs[field]==='@homeroom'?'homeroom:'+snapshot.classId:id('학생계정',row.accountRefs[field]);const bool=(v:any)=>v===true||v==='TRUE';const time=(v:any)=>Date.parse(v);const order=['학생계정','일기기록','게시판','게시판댓글','게시판좋아요','칭찬메시지','선생님댓글','학생태그','알림','푸시구독'];const records=checked.records.slice().sort((a,b)=>order.indexOf(a.entity)-order.indexOf(b.entity));
  if(snapshot.entities['칭찬메시지']?.some(r=>r.accountRefs?.['받는사람']==='@homeroom'))sql.push(insert('accounts',{id:'homeroom:'+snapshot.classId,legacy_identity:'system:homeroom:'+snapshot.classId,display_name:'담임',class_id:snapshot.classId,role:'teacher',active:0}));
  for(const r of records){const c=r.row.cells,tid=r.targetId;let table='',data:Record<string,any>|undefined;
- switch(r.entity){
+ if(!r.archiveOnly)switch(r.entity){
  case '학생계정':table='accounts';data={id:tid,legacy_identity:snapshot.sourceId+':'+r.row.id,display_name:c['이름'],class_id:snapshot.classId,role:c['역할']==='선생님'?'teacher':'student',active:1};break;
  case '일기기록':table='diaries';data={id:tid,legacy_id:r.row.id,author_id:ref(r.row,'학생이름'),class_id:snapshot.classId,diary_date:c['날짜'],body:c['일기내용'],mood_emoji:c['기분이모지'],mood_label:c['기분라벨'],mood_color:c['기분색상'],visibility:visibility(c),legacy_secret:bool(c['비밀여부']),created_at:time(c['저장시간']),updated_at:time(c['저장시간']),source_batch:batch};break;
  case '게시판':table='board_posts';data={id:tid,legacy_id:r.row.id,diary_id:snapshot.entities['일기기록'].some(x=>x.id===r.row.id)?id('일기기록',r.row.id):null,author_id:ref(r.row,'작성자'),body:c['내용'],mood:c['기분'],date_label:c['날짜표시'],created_at:time(c['작성시간'])};break;
@@ -14,9 +14,10 @@ export function d1Import(snapshot:Snapshot){const checked=plan(snapshot);if(chec
  case '게시판좋아요':table='board_likes';data={post_id:id('게시판',c['게시글ID']),account_id:ref(r.row,'학생이름')};break;
  case '칭찬메시지':table='praises';data={id:tid,legacy_id:r.row.id,sender_id:ref(r.row,'보낸사람'),recipient_id:ref(r.row,'받는사람'),body:c['메시지'],created_at:time(c['작성시간']),is_read:bool(c['읽음여부']),anonymous:bool(c['익명여부']),hidden:bool(c['숨김여부']),approval:c['승인상태']||'approved'};break;
  case '학생태그':table='teacher_notes';data={student_id:ref(r.row,'이름'),needs_counsel:bool(c['상담필요']),memo:c['메모'],setter_id:ref(r.row,'설정자'),set_at:time(c['설정시간'])};break;
+ case '푸시구독':{const parsed=sourcePushSubscription(c);if(parsed){table='push_subscriptions';data={endpoint_hash:sha(String(c.Endpoint)),account_id:ref(r.row,'이름'),subscription:String(c.SubscriptionJSON),enabled:parsed.enabled?1:0,updated_at:time(c['등록시간'])};}break;}
  }
  if(data)sql.push(insert(table,data));if(r.entity==='학생계정')sql.push(insert('credentials',{account_id:tid,login_name:c['이름'],pin_hash:c.PIN}));sql.push(insert('source_archive',{batch_id:batch,entity:r.entity,legacy_id:r.row.id,payload:JSON.stringify(r.row)}));sql.push(insert('migration_records',{source_id:snapshot.sourceId,entity:r.entity,legacy_id:r.row.id,target_id:tid,source_hash:r.hash,batch_id:batch,status:data?'imported':'archive-only'}));
  }
- for(const r of records.filter(r=>['게시판댓글','선생님댓글'].includes(r.entity)&&r.row.cells['부모댓글ID']))sql.push(`UPDATE ${r.entity==='게시판댓글'?'board_comments':'diary_comments'} SET parent_id=${literal(id(r.entity,r.row.cells['부모댓글ID']))} WHERE id=${literal(r.targetId)} AND parent_id IS NULL AND last_request_id IS NULL;`);
+ for(const r of records.filter(r=>!r.archiveOnly&&['게시판댓글','선생님댓글'].includes(r.entity)&&r.row.cells['부모댓글ID']))sql.push(`UPDATE ${r.entity==='게시판댓글'?'board_comments':'diary_comments'} SET parent_id=${literal(id(r.entity,r.row.cells['부모댓글ID']))} WHERE id=${literal(r.targetId)} AND parent_id IS NULL AND last_request_id IS NULL;`);
  for(const f of snapshot.files)sql.push(insert('attachments',{id:id('photos',f.diaryId+':'+f.ordinal),diary_id:id('일기기록',f.diaryId),object_path:'migration/'+f.sha256,ordinal:f.ordinal,sha256:f.sha256,byte_size:f.size,mime_type:f.mime,legacy_file_id:f.id}));return {sql:sql.join('\n')+'\n',batch,checked};
 }

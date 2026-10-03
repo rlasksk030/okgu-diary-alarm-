@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-03T11:56:52.214Z",
+  "liveMatchesMain": true,
+  "liveGasEndpointFingerprints": [
+    "1a3facfada9d7583248ef2aeddf321fbe1903c6314bfb7a70c9f986359064cd7"
+  ],
+  "mainGasEndpointFingerprints": [
+    "1a3facfada9d7583248ef2aeddf321fbe1903c6314bfb7a70c9f986359064cd7"
+  ],
+  "uploadedHtmlEndpointFingerprints": [],
+  "teacherFeedUsesRpc": "getRecentEntries",
+  "actualFreshDiaryRead": false,
+  "userConfirmedOriginalSheetContainsFreshDiary": true,
+  "userConfirmedFreshDiaryIsNotPrivate": true,
+  "exactFeedFailureCauseConfirmed": false,
+  "userConfirmationRecordedAt": "2026-10-03T12:50:39.321Z"
+}
