@@ -10,6 +10,8 @@ const exporter=await readFile('migration/source/ReadOnlyExport.gs','utf8');
 const code='// Owner-only private helper. Do not publish/deploy/share this project.\n'+
  'function backupOkguWithKnownSource() {\n'+
  '  const folder = DriveApp.createFolder("옥구_이전백업_"+Utilities.formatDate(new Date(),"Asia/Seoul","yyyyMMdd_HHmmss"));\n'+
+ '  folder.setSharing(DriveApp.Access.PRIVATE, DriveApp.Permission.NONE);\n'+
+ '  if (folder.getSharingAccess() !== DriveApp.Access.PRIVATE || folder.getEditors().length || folder.getViewers().length) throw new Error("OWNER_ONLY_BACKUP_FOLDER_REQUIRED");\n'+
  '  PropertiesService.getScriptProperties().setProperties({OKGU_SOURCE_SPREADSHEET_ID:'+JSON.stringify(id)+',OKGU_PRIVATE_BACKUP_FOLDER_ID:folder.getId()});\n'+
  '  return exportOkguReadOnly();\n}\n\n'+exporter;
 new Script(code); // Syntax only: never executes any Google service.
