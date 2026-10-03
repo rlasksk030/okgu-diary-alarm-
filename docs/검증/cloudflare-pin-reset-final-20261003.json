@@ -1,0 +1,63 @@
+{
+  "environment": "deployed Cloudflare trial",
+  "origin": "https://okgu-diary-trial.rlasksk030.workers.dev",
+  "browser": "Linux Chromium; desktop and mobile viewport; no physical phone",
+  "results": [
+    {
+      "name": "teacher login → dashboard → students; original controls plus minimal reset button",
+      "success": true,
+      "ms": 4934
+    },
+    {
+      "name": "capture pre-reset account, short/30-day sessions, existing diary/photo/comment/like",
+      "success": true,
+      "ms": 13604
+    },
+    {
+      "name": "anonymous/student/cross-class/teacher-target and invalid API requests denied",
+      "success": true,
+      "ms": 5609
+    },
+    {
+      "name": "UI format/mismatch do not send a request; failures preserve inputs for retry",
+      "success": true,
+      "ms": 267
+    },
+    {
+      "name": "UI retry + double click sends one successful reset; completion waits for real D1 response",
+      "success": true,
+      "ms": 3726
+    },
+    {
+      "name": "old PIN rejected; old short and 30-day tokens revoked; other student/teachers retained",
+      "success": true,
+      "ms": 2882
+    },
+    {
+      "name": "student logs in with leading-zero new PIN in deployed browser; CPU 1102 absent",
+      "success": true,
+      "ms": 4341
+    },
+    {
+      "name": "same IDs, diary body, photograph bytes, teacher/student comments and likes after reset",
+      "success": true,
+      "ms": 818
+    },
+    {
+      "name": "same request replay cannot revoke newly created student sessions or change PIN again",
+      "success": true,
+      "ms": 115
+    },
+    {
+      "name": "teacher UI restores standard synthetic test PIN; restored browser login and records work",
+      "success": true,
+      "ms": 7259
+    }
+  ],
+  "errors": [],
+  "restoredStandardSyntheticPIN": true,
+  "syntheticEvidenceDiaryIds": [
+    "2de71574-c93f-48da-bf10-b50aad0e0575"
+  ],
+  "security": "No PINs or tokens in report; generated alternate PIN held only in memory; no production data or pushes"
+}

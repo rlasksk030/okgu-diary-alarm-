@@ -22,6 +22,13 @@ export async function write(env:Env,a:Account,token:string,body:any){const {meth
   q(`INSERT INTO notifications(id,recipient_id,actor_id,event_key,type,link_id,comment_id,created_at) SELECT ?,?,?,?,?,?,?,? WHERE ${guard} AND ${proof} ON CONFLICT(recipient_id,event_key) DO NOTHING`,[crypto.randomUUID(),recipient,a.id,method+':'+requestId,type,link,comment,now,...gp,...proofParams]);
   queue(recipient,type,link,comment);
  }};
+ const notifyTeachers=(type:string,link:string)=>{
+  const url=new URL(env.APP_URL);url.searchParams.set('open',type.startsWith('praise')?'praise':'diary');url.searchParams.set('id',link);
+  const payload=JSON.stringify({title:'OKGU DIARY',body:'새 소식이 있어요.',url:url.href,tag:method+':'+requestId,guard:{type,link,comment:''}});
+  const eligible="t.class_id=? AND t.role='teacher' AND t.active=1 AND t.id<>?";
+  q(`INSERT INTO notifications(id,recipient_id,actor_id,event_key,type,link_id,comment_id,created_at) SELECT lower(hex(randomblob(16))),t.id,?,?||t.id,?,?,'',? FROM accounts t WHERE ${eligible} AND ${guard} AND ${proof} ON CONFLICT(recipient_id,event_key) DO NOTHING`,[a.id,method+':'+requestId+':',type,link,now,a.class_id,a.id,...gp,...proofParams]);
+  q(`INSERT INTO push_jobs(id,event_key,account_id,payload,status,created_at,updated_at) SELECT lower(hex(randomblob(16))),?||t.id,t.id,?,'pending',?,? FROM accounts t WHERE ${eligible} AND ${guard} AND ${proof} ON CONFLICT(event_key) DO NOTHING`,[method+':'+requestId+':',payload,now,now,a.class_id,a.id,...gp,...proofParams]);
+ };
  switch(method){
  case 'saveEntry':{if(a.role!=='student')throw new AppError('E_FORBIDDEN',403);const [,date,emoji,label,color,bodyText,secret,pub,priv,photoJSON,oldId]=args;text(bodyText);if(typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date))||new Date(date).toISOString().slice(0,10)!==date||moods[emoji]!==label||typeof color!=='string'||!/^#[\da-f]{3,8}$/i.test(color)||[secret,pub,priv].some(v=>typeof v!=='boolean'))throw new AppError('E_INPUT');if((secret||priv)&&pub)throw new AppError('E_VISIBILITY');let refs:any;try{refs=JSON.parse(photoJSON||'[]');}catch{throw new AppError('E_INPUT');}if(!Array.isArray(refs)||refs.length>4||new Set(refs).size!==refs.length||refs.some(r=>typeof r!=='string'||!uuid.test(r.slice(11))||!r.startsWith('okgu-photo:')))throw new AppError('E_INPUT');
  let old:Row|undefined;if(oldId){old=await diary(env,a,oldId);if(old.author_id!==a.id)throw new AppError('E_FORBIDDEN',403);if(!Number.isInteger(body.expectedVersion)||old.version!==body.expectedVersion)throw new AppError('E_CONFLICT',409);}
@@ -35,7 +42,7 @@ export async function write(env:Env,a:Account,token:string,body:any){const {meth
  q(`DELETE FROM attachments WHERE diary_id=? AND ${guard} AND ${proof}`,[id,...gp,...proofParams]);
  for(const [ordinal,p] of photos.entries()){q(`UPDATE photo_uploads SET diary_id=?,detached_at=NULL WHERE id=? AND owner_id=? AND ${guard} AND ${proof}`,[id,p.id,a.id,...gp,...proofParams]);q(`INSERT INTO attachments(id,diary_id,object_path,ordinal,sha256,byte_size,mime_type,legacy_file_id,thumbnail_path) SELECT ?,?,?,?,?,?,?,?,? WHERE ${guard} AND ${proof}`,[p.id,id,p.object_path,ordinal,p.sha256,p.byte_size,p.mime_type,p.legacy_file_id||null,p.thumbnail_path||null,...gp,...proofParams]);}
  q(`UPDATE board_posts SET deleted_at=?,last_request_id=? WHERE diary_id=? AND ${guard} AND ${proof}`,[now,nonce,id,...gp,...proofParams]);if(visibility==='class')q(`INSERT INTO board_posts(id,diary_id,author_id,body,mood,date_label,created_at,last_request_id) SELECT ?,?,?,?,?,?,?,? WHERE ${guard} AND ${proof} ON CONFLICT(diary_id) DO UPDATE SET body=excluded.body,mood=excluded.mood,date_label=excluded.date_label,deleted_at=NULL,last_request_id=excluded.last_request_id`,[id,id,a.id,bodyText,emoji,date,now,nonce,...gp,...proofParams]);
- if(visibility!=='private')notify(await teachers(env,a),'diary',id);
+ if(visibility!=='private')notifyTeachers('diary',id);
  result={success:true,id,version,entry:entry({id,diary_date:date,display_name:a.display_name,body:bodyText,mood_emoji:emoji,mood_label:label,mood_color:color,visibility,legacy_secret:secret,version,updated_at:now,photos:refs})};break;}
  case 'deleteEntry':case 'deleteEntryAsTeacher':{const d=await diary(env,a,args[1]);if(method==='deleteEntryAsTeacher')teacher(a);else if(d.author_id!==a.id)throw new AppError('E_FORBIDDEN',403);if(body.expectedVersion!==d.version)throw new AppError('E_CONFLICT',409);const access=aclDiary(d.id);q(`UPDATE diaries SET deleted_at=?,version=version+1,last_request_id=? WHERE id=? AND version=? AND ${guard} AND ${access.sql}`,[now,nonce,d.id,body.expectedVersion,...gp,...access.p]);root('diaries',d.id);q(`UPDATE board_posts SET deleted_at=? WHERE diary_id=? AND ${guard} AND ${proof}`,[now,d.id,...gp,...proofParams]);break;}
  case 'deleteBoard':{const b=await post(env,a,args[1]);if(b.author_id!==a.id)throw new AppError('E_FORBIDDEN',403);const access=aclPost(b.id);q(`UPDATE board_posts SET deleted_at=?,last_request_id=? WHERE id=? AND author_id=? AND ${guard} AND ${access.sql}`,[now,nonce,b.id,a.id,...gp,...access.p]);root('board_posts',b.id);break;}
@@ -46,7 +53,7 @@ export async function write(env:Env,a:Account,token:string,body:any){const {meth
   const group=args[1]==='담임',recipient=group?'homeroom:'+a.class_id:(await target(env,a,args[1])).id,id=crypto.randomUUID();
   if(group)q(`INSERT INTO accounts(id,legacy_identity,display_name,class_id,role,active) SELECT ?,?,'담임',?,'teacher',0 WHERE ${guard} ON CONFLICT DO NOTHING`,[recipient,'system:'+recipient,a.class_id,...gp]);
   q(`INSERT INTO praises(id,sender_id,recipient_id,body,created_at,anonymous,approval,last_request_id) SELECT ?,?,?,?,?,?,'pending',? WHERE ${guard} AND EXISTS(SELECT 1 FROM accounts WHERE id=? AND (active=1 OR id=?) AND class_id=?)`,[id,a.id,recipient,text(args[2],300),now,args[3]===true?1:0,nonce,...gp,recipient,'homeroom:'+a.class_id,a.class_id]);root('praises',id);
-  notify(await teachers(env,a),'praise-review',id);result={success:true,id};break;
+  notifyTeachers('praise-review',id);result={success:true,id};break;
  }
  case 'markPraiseRead':{
   const ids=args[0];if(!Array.isArray(ids)||ids.length>50||ids.some(id=>typeof id!=='string'||!uuid.test(id)))throw new AppError('E_INPUT');
@@ -60,6 +67,6 @@ export async function write(env:Env,a:Account,token:string,body:any){const {meth
  default:throw new AppError('E_METHOD',404);
  }
  if(finalExpression==='?')finalParams=[JSON.stringify(result)];q(`UPDATE receipts SET result=CASE WHEN ${proof} AND ${guard} THEN ${finalExpression} ELSE '{"error":"E_CONFLICT"}' END WHERE account_id=? AND request_id=? AND nonce=?`,[...proofParams,...gp,...finalParams,a.id,requestId,nonce]);
- await env.DB.batch(queries);const receipt=await one(env,'SELECT * FROM receipts WHERE account_id=? AND request_id=?',[a.id,requestId]);if(receipt.payload_hash!==payloadHash)throw new AppError('E_CONFLICT',409);return decode(receipt.result);
+ q('SELECT * FROM receipts WHERE account_id=? AND request_id=?',[a.id,requestId]);const committed=await env.DB.batch(queries);const receipt=committed[committed.length-1].results[0] as Row|undefined;if(!receipt)throw new AppError('E_CONFLICT',409);if(receipt.payload_hash!==payloadHash)throw new AppError('E_CONFLICT',409);return decode(receipt.result);
 }
 function decode(value:string){const parsed=JSON.parse(value);if(parsed.error)throw new AppError(parsed.error,409);if(!parsed.success)throw new AppError('E_CONFLICT',409);return parsed;}

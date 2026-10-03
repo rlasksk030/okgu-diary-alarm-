@@ -2,6 +2,25 @@
 
 운영 main과 기존 GitHub Pages 주소를 유지하는 별도 가상 시험입니다. **2026-10-03 최신: Paid 전환 없이1102 해결·실제13명 API/browser 실패0**. 같은600,000회 KDF만 무료 비공개 Durable Object로 분리했고 DB는 D1/사진은private R2입니다. 로그인/목록/글 속도 목표는 미달했습니다. [최신 원인·측정·비용](로그인_CPU_무료해결_2026-10-03.md). 실제 학생/main/Pages/실제 푸시는 최종 승인 전 변경하지 않습니다.
 
+## 최신 최종 검증 — 2026-10-03 KST
+
+[최종 결과](최종검증_2026-10-03.md)와 [승인 전 실행안](운영전환_실행안_2026-10-03.md)이 아래 과거 상태보다 우선합니다. 조회·글·사진 API 목표는 충족했지만 로그인1초 목표는 미달입니다. 운영 전환은 실행하지 않았습니다.
+
+현재 별도 화면: https://okgu-diary-pages-trial.rlasksk030.workers.dev/okgu-diary-alarm-/ , 기존 통합 시험 화면도 유지합니다. 두 화면 모두 가상 시험학생01~13/가상교사만 사용합니다. `npm run deploy:trial:frontend`는 asset-only Worker이며 D1/R2 binding이 없습니다. 운영 Pages source/브랜치를 바꾸거나 기존 Git 연동 화면의 Deploy를 누를 필요가 없습니다.
+
+기존 CLI 시험을 재현할 때 환경 값:
+
+```sh
+OKGU_TRIAL_API_ORIGIN=https://okgu-diary-trial.rlasksk030.workers.dev
+OKGU_TRIAL_FRONTEND_ORIGIN=https://okgu-diary-pages-trial.rlasksk030.workers.dev
+OKGU_TRIAL_PAGES_CORS=yes
+OKGU_TRIAL_WRITE_MODE=active
+```
+
+위 값은 Codex/CI 환경 설정 또는 셸 환경 변수로 설정합니다. Git 연동 시험을 사용할 때도 Build variables에 동일 값을 넣어 cross-origin allowlist를 유지합니다. D1 UUID와 기존 토큰/Account ID는 안전한 기존 환경 설정을 재사용합니다. 진단 변수는 평소 설정하지 않습니다. Trial deploy는 main을 거부하지만 실제 계정의 Git 연결/자동 빌드 브랜치 화면은 직접 확인하지 못했으므로 main 자동 연결이 없다고 단정하지 않습니다. 사용자는 기존 설정을 유지하고 운영 Pages는 건드리지 않습니다.
+
+PWA 예행연습 재현은 먼저 `npm run deploy:trial:frontend -- --legacy-sw`, 이어서 `npm run test:pwa:trial`입니다. 뒤 명령은 가상 화면에 새 SW를 배포하며 operating Pages는 변경하지 않습니다. 성능 검사는 배포/다른 suite와 겹치지 않게 실행합니다.
+
 ## 최신 교사 학생 PIN 재설정
 
 기존 시험 주소에서 **가상교사 로그인 → 대시보드 → 학생 → PIN 재설정**을 사용할 수 있습니다. 시험학생09의 앞자리0 새 PIN 로그인, 모든 이전 세션 무효화와 다른 사용자/자료 보존을 실제 브라우저로 검증했습니다. 검증 뒤 공통 시험 PIN으로 복원했습니다. Worker version `eedbfe11-fb19-440a-860d-d856c0e171c4`. 새 사용자 인증·리소스·과금 설정은 필요 없습니다. [메뉴·검증·재현·한계](학생_PIN_재설정_2026-10-03.md).

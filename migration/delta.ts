@@ -7,8 +7,9 @@ const quote=(v:string)=>'"'+v.replace(/"/g,'""')+'"';
 const literal=(v:any)=>v===null||v===undefined?'NULL':typeof v==='number'?String(v):"'"+String(v).replace(/'/g,"''")+"'";
 const canonical=(s:Snapshot)=>{const db=new DatabaseSync(':memory:');for(const name of readdirSync('migrations').filter(n=>n.endsWith('.sql')).sort())db.exec(readFileSync('migrations/'+name,'utf8'));db.exec(d1Import(s).sql);return db;};
 const equal=(a:any,b:any)=>JSON.stringify(a)===JSON.stringify(b);
-export function delta(previous:Snapshot,current:Snapshot,baseline:any,target:any){
+export function delta(previous:Snapshot,current:Snapshot,baseline:any,target:any,review?:{reviewed:boolean;currentHash:string;missing:{table:string;keyHash:string}[]}){
  if(previous.sourceId!==current.sourceId||previous.classId!==current.classId||plan(previous).issues.length||plan(current).issues.length)throw new Error('DELTA_UNREVIEWED_SOURCE');
+ if(review&&(!review.reviewed||review.currentHash!==sha(JSON.stringify(current))))throw new Error('DELTA_DELETE_REVIEW_MISMATCH');
  const before=canonical(previous),after=canonical(current),conflicts:{table:string,keyHash:string,reason:string}[]=[],conditions:string[]=[],statements:string[]=[];
  try{
  for(const table of tables){
@@ -27,18 +28,35 @@ export function delta(previous:Snapshot,current:Snapshot,baseline:any,target:any
     conditions.push('NOT EXISTS(SELECT 1 FROM '+quote(table)+' WHERE '+identity(row)+')');
     statements.push('INSERT INTO '+quote(table)+'('+Object.keys(row).map(quote).join(',')+') VALUES('+Object.values(row).map(literal).join(',')+');');
    }else{
-    if(!known||!actual||!Object.keys(was).every(c=>c==='source_batch'||equal(was[c],known[c]))||!equal(known,actual)){conflicts.push({table,keyHash:sha(k),reason:'TARGET_CHANGED_OR_BASELINE_MISSING'});continue;}
+    if(!known||!actual||!Object.keys(was).every(c=>c==='source_batch'||(table==='diaries'&&c==='version')||equal(was[c],known[c]))||!equal(known,actual)){conflicts.push({table,keyHash:sha(k),reason:'TARGET_CHANGED_OR_BASELINE_MISSING'});continue;}
     conditions.push('EXISTS(SELECT 1 FROM '+quote(table)+' WHERE '+Object.keys(actual).map(c=>quote(c)+' IS '+literal(actual[c])).join(' AND ')+')');
     const patch=Object.fromEntries(changed.map(c=>[c,row[c]]));
     if(table==='diaries'){patch.version=Number(actual.version)+1;patch.updated_at=Math.max(Number(row.updated_at),Number(actual.updated_at));}
     statements.push('UPDATE '+quote(table)+' SET '+Object.entries(patch).map(([c,v])=>quote(c)+'='+literal(v)).join(',')+' WHERE '+identity(row)+';');
    }
   }
-  for(const [k] of old)if(!next.has(k))conflicts.push({table,keyHash:sha(k),reason:'SOURCE_MISSING_REQUIRES_DELETE_REVIEW'});
+  for(const [k,was] of old)if(!next.has(k)){
+   const reviewed=review?.missing.some(x=>x.table===table&&x.keyHash===sha(k));
+   if(!reviewed){conflicts.push({table,keyHash:sha(k),reason:'SOURCE_MISSING_REQUIRES_DELETE_REVIEW'});continue;}
+   const known=imported.get(k) as any,actual=live.get(k) as any;
+   if(!known||!actual||!Object.keys(was).every(c=>c==='source_batch'||(table==='diaries'&&c==='version')||equal((was as any)[c],known[c]))||!equal(known,actual)){conflicts.push({table,keyHash:sha(k),reason:'DELETE_TARGET_CHANGED'});continue;}
+   if(!['diaries','board_posts','board_comments','diary_comments','praises','board_likes','attachments'].includes(table)){conflicts.push({table,keyHash:sha(k),reason:'ACCOUNT_DELETE_REQUIRES_SEPARATE_REVIEW'});continue;}
+   conditions.push('EXISTS(SELECT 1 FROM '+quote(table)+' WHERE '+Object.keys(actual).map(c=>quote(c)+' IS '+literal(actual[c])).join(' AND ')+')');
+   // No new/edited target child may disappear behind a deleted source parent.
+   const related=table==='diaries'?[['diary_comments','diary_id'],['attachments','diary_id'],['board_posts','diary_id']]:table==='board_posts'?[['board_comments','post_id'],['board_likes','post_id']]:[];
+   for(const [child,field] of related){const prior=(baseline[child]||[]).filter((r:any)=>r[field]===actual.id),now=(target[child]||[]).filter((r:any)=>r[field]===actual.id);if(!equal(prior,now)){conflicts.push({table:child,keyHash:sha(k),reason:'DELETE_TARGET_RELATIONS_CHANGED'});continue;}
+    conditions.push('(SELECT COUNT(*) FROM '+quote(child)+' WHERE '+quote(field)+' IS '+literal(actual.id)+')='+now.length);
+    for(const row of now)conditions.push('EXISTS(SELECT 1 FROM '+quote(child)+' WHERE '+Object.keys(row).map(c=>quote(c)+' IS '+literal(row[c])).join(' AND ')+')');
+   }
+   // Keep photo metadata/bytes for recovery; the soft-deleted parent revokes access.
+   if(table==='attachments')continue;
+   if(table==='board_likes')statements.push('DELETE FROM '+quote(table)+' WHERE '+identity(actual)+';');
+   else statements.push('UPDATE '+quote(table)+' SET deleted_at='+Date.now()+(table==='diaries'?',version=version+1':'')+' WHERE '+identity(actual)+';');
+  }
  }
  // Deterministic apply ID makes reruns harmless. Valid=0 deliberately fails a CHECK
  // constraint so a stale-target conflict rolls back the entire D1 atomic batch.
- const id=sha(JSON.stringify([previous,current]));
+ const id=sha(JSON.stringify([previous,current,review||null]));
  const existing=(target.migration_applies||[]).some((r:any)=>r.id===id);
  if(existing)return {id,conflicts:[],statements:[],alreadyApplied:true};
  if(conflicts.length)return {id,conflicts,statements:[],alreadyApplied:false};

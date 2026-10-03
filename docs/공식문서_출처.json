@@ -60,5 +60,16 @@
       "Actual private DO KDF and public Worker CPU/wall split verified by ephemeral sanitized tail",
       "Paid minimum$5/month remains unactivated; CPU allowance increase alone does not guarantee faster KDF"
     ]
+  },
+  "finalVerification": {
+    "at": "2026-10-02T23:24:00Z",
+    "retrieval": "Direct HTTPS through configured session proxy; TLS verified; four pages HTTP200",
+    "urls": [
+      "https://developers.cloudflare.com/workers/platform/limits/",
+      "https://developers.cloudflare.com/durable-objects/platform/pricing/",
+      "https://developers.cloudflare.com/d1/platform/pricing/",
+      "https://developers.cloudflare.com/r2/pricing/"
+    ],
+    "billingChanges": false
   }
 }

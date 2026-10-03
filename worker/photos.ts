@@ -22,15 +22,15 @@ export async function upload(env:Env,a:Account,req:Request){
  let thumbnailPath:string|null=null,thumbnailMime='';
  if(thumb){const info=inspectImage(thumb);if(info.width>192||info.height>192)throw new AppError('E_FILE_SIZE',413);thumbnailMime=info.mime;thumbnailPath='uploads/'+a.id+'/'+id+'.thumb.'+(info.mime==='image/jpeg'?'jpg':'png');}
  const payloadHash=thumb?await digest(sha+':'+await digest(thumb)):sha;
- await env.DB.prepare('INSERT INTO photo_uploads(id,owner_id,object_path,thumbnail_path,source_sha256,sha256,byte_size,mime_type,created_at) SELECT ?,?,?,?,?,?,?,?,? WHERE NOT EXISTS(SELECT 1 FROM expired_uploads WHERE id=?) ON CONFLICT DO NOTHING').bind(id,a.id,path,thumbnailPath,payloadHash,sha,bytes.byteLength,mime,Date.now(),id).run();
- const row=await env.DB.prepare('SELECT * FROM photo_uploads WHERE id=?').bind(id).first<Row>();
+ const pending=await env.DB.batch([env.DB.prepare('INSERT INTO photo_uploads(id,owner_id,object_path,thumbnail_path,source_sha256,sha256,byte_size,mime_type,created_at) SELECT ?,?,?,?,?,?,?,?,? WHERE NOT EXISTS(SELECT 1 FROM expired_uploads WHERE id=?) ON CONFLICT DO NOTHING').bind(id,a.id,path,thumbnailPath,payloadHash,sha,bytes.byteLength,mime,Date.now(),id),env.DB.prepare('SELECT * FROM photo_uploads WHERE id=?').bind(id)]);
+ const row=pending[1].results[0] as Row|undefined;
  if(!row)throw new AppError('E_UPLOAD_EXPIRED',409);
  if(row.owner_id!==a.id)throw new AppError('E_FORBIDDEN',403);
  if(row.source_sha256!==payloadHash)throw new AppError('E_CONFLICT',409);
  if(!row.ready){
   const lease=await env.DB.prepare('UPDATE photo_uploads SET created_at=? WHERE id=? AND owner_id=? AND ready=0').bind(Date.now(),id,a.id).run();
   if(!lease.meta.changes)throw new AppError('E_CONFLICT',409);
-  await env.PHOTOS.put(path,bytes,{httpMetadata:{contentType:mime},customMetadata:{sha256:sha}});if(thumb&&thumbnailPath)await env.PHOTOS.put(thumbnailPath,thumb,{httpMetadata:{contentType:thumbnailMime}});const changed=await env.DB.prepare('UPDATE photo_uploads SET ready=1 WHERE id=? AND owner_id=? AND source_sha256=?').bind(id,a.id,payloadHash).run();if(!changed.meta.changes)throw new AppError('E_CONFLICT',409);}
+  await Promise.all([env.PHOTOS.put(path,bytes,{httpMetadata:{contentType:mime},customMetadata:{sha256:sha}}),...(thumb&&thumbnailPath?[env.PHOTOS.put(thumbnailPath,thumb,{httpMetadata:{contentType:thumbnailMime}})]:[])]);const changed=await env.DB.prepare('UPDATE photo_uploads SET ready=1 WHERE id=? AND owner_id=? AND source_sha256=?').bind(id,a.id,payloadHash).run();if(!changed.meta.changes)throw new AppError('E_CONFLICT',409);}
  return {success:true,url:'okgu-photo:'+id,sha256:sha,bytes:bytes.byteLength,thumbnail:!!thumb};
 }
 

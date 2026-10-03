@@ -1,0 +1,45 @@
+{
+  "at": "2026-10-02T23:27:40.836Z",
+  "environment": "actual independent Cloudflare trial frontend and API",
+  "results": [
+    {
+      "name": "existing visibility controls: public and private diary save; private hidden from teacher/peer",
+      "success": true
+    },
+    {
+      "name": "teacher writes comment in student diary modal; student sees it and submits reply",
+      "success": true
+    },
+    {
+      "name": "board like, comment and reply from existing buttons are persisted",
+      "success": true
+    },
+    {
+      "name": "board comment edit/delete preserve reply relationship and other comments",
+      "success": true
+    },
+    {
+      "name": "student praise → teacher approval → recipient view and read; no live push",
+      "success": true
+    },
+    {
+      "name": "all-history student print includes more than 50 entries, private record and loaded originals; PDF bytes valid",
+      "success": true
+    },
+    {
+      "name": "teacher class print excludes private diary, preserves all visible histories and photos",
+      "success": true
+    },
+    {
+      "name": "teacher mood statistics CSV downloads through existing button",
+      "success": true
+    },
+    {
+      "name": "no Apps Script requests or browser exceptions in additional flows",
+      "success": true
+    }
+  ],
+  "gasRequests": 0,
+  "errors": [],
+  "physicalMobile": false
+}

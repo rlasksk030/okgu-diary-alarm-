@@ -1,0 +1,569 @@
+{
+  "baseline": "964985d3ff683617de18e89f71521f2c224d50f2",
+  "trialCommit": "d345c2809c1c20668f308b9d53786b5ddd54a04f",
+  "fixture": "synthetic only; no GAS/production network, authentication, or student data",
+  "staticHTMLEqual": true,
+  "cssEqual": true,
+  "excludedNewFeature": "Only authorized teacher PIN reset buttons hidden for unchanged-layout comparison; reset feature verified separately",
+  "cases": 110,
+  "matches": 110,
+  "errors": [],
+  "results": [
+    {
+      "name": "390-student-login",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-login-name-validation",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-write",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-quick",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-write-helper",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-avatar",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-pin-sheet",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-board",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-search",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-search-result",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-stat",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-stat-day",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-stat-month",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-stat-all",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-praise",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-praise-sent",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-stat-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-praise-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-praise-error",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-logout-confirm",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-reconnect-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-print-preview",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-empty-stat",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-student-empty-print-message",
+      "equal": true,
+      "differences": [
+        "아직 작성한 일기가 없어요",
+        "아직 작성한 일기가 없어요"
+      ]
+    },
+    {
+      "name": "390-teacher-login",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-login-name-validation",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-write",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-quick",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-write-helper",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-avatar",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-pin-sheet",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-board",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-search",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-search-result",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-stat",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-stat-day",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-stat-month",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-stat-all",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-praise",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-praise-sent",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-stat-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-praise-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-praise-error",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-dashboard",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-teacher-stats",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-teacher-students",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-teacher-praise",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-teacher-approved",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-student-modal",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-student-modal-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-logout-confirm",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-reconnect-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-print-preview",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-print-no-students",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "390-teacher-print-no-records",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-login",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-login-name-validation",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-write",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-quick",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-write-helper",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-avatar",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-pin-sheet",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-board",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-search",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-search-result",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-stat",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-stat-day",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-stat-month",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-stat-all",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-praise",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-praise-sent",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-stat-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-praise-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-praise-error",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-logout-confirm",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-reconnect-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-print-preview",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-empty-stat",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-student-empty-print-message",
+      "equal": true,
+      "differences": [
+        "아직 작성한 일기가 없어요",
+        "아직 작성한 일기가 없어요"
+      ]
+    },
+    {
+      "name": "1365-teacher-login",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-login-name-validation",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-write",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-quick",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-write-helper",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-avatar",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-pin-sheet",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-board",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-search",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-search-result",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-stat",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-stat-day",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-stat-month",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-stat-all",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-praise",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-praise-sent",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-stat-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-praise-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-praise-error",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-dashboard",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-teacher-stats",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-teacher-students",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-teacher-praise",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-teacher-approved",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-student-modal",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-student-modal-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-logout-confirm",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-reconnect-loading",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-print-preview",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-print-no-students",
+      "equal": true,
+      "differences": []
+    },
+    {
+      "name": "1365-teacher-print-no-records",
+      "equal": true,
+      "differences": []
+    }
+  ]
+}

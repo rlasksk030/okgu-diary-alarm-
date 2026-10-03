@@ -1,0 +1,177 @@
+{
+  "time": "2026-10-02T23:48:13.532Z",
+  "environment": "deployed Cloudflare trial",
+  "concurrentUsers": 13,
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "photo": "synthetic 180x180 ~97KB PNG; existing browser compression + binary multipart original/thumbnail",
+  "network": "Codex cloud Chromium via session proxy; no artificial throttling; not school network or physical phones",
+  "sampleDefinition": "firstVisit DOM ready; login main UI visible; revisit authenticated UI visible; listView calendar fully rendered; text/photoSave server-confirmed success banner and cleared draft; AndRefresh metrics also include the later complete background list reload, matching the prior benchmark definition",
+  "failures": [],
+  "samplesMs": {
+    "firstVisit": [
+      680,
+      928,
+      986,
+      998,
+      1091,
+      1155,
+      1159,
+      1207,
+      1245,
+      1288,
+      1479,
+      1518,
+      1563
+    ],
+    "login": [
+      2061,
+      2562,
+      2574,
+      2577,
+      2583,
+      2592,
+      2594,
+      3040,
+      3538,
+      3571,
+      3680,
+      3700,
+      3710
+    ],
+    "revisit": [
+      199,
+      264,
+      265,
+      267,
+      293,
+      300,
+      304,
+      309,
+      326,
+      329,
+      362,
+      373,
+      376
+    ],
+    "listView": [
+      112,
+      113,
+      120,
+      125,
+      127,
+      129,
+      135,
+      136,
+      148,
+      152,
+      177,
+      190,
+      593
+    ],
+    "textSave": [
+      168,
+      172,
+      189,
+      191,
+      191,
+      196,
+      213,
+      216,
+      224,
+      225,
+      229,
+      238,
+      240
+    ],
+    "textSaveAndRefresh": [
+      302,
+      305,
+      309,
+      340,
+      341,
+      342,
+      345,
+      377,
+      377,
+      406,
+      410,
+      424,
+      784
+    ],
+    "photoSave": [
+      1544,
+      2034,
+      2090,
+      2092,
+      2112,
+      2125,
+      2143,
+      2170,
+      2232,
+      2257,
+      2265,
+      2362,
+      2436
+    ],
+    "photoSaveAndRefresh": [
+      2060,
+      2198,
+      2223,
+      2256,
+      2258,
+      2262,
+      2291,
+      2317,
+      2367,
+      2380,
+      2386,
+      2513,
+      2566
+    ]
+  },
+  "summary": {
+    "firstVisit": {
+      "n": 13,
+      "p50": 1159,
+      "p95": 1563
+    },
+    "login": {
+      "n": 13,
+      "p50": 2594,
+      "p95": 3710
+    },
+    "revisit": {
+      "n": 13,
+      "p50": 304,
+      "p95": 376
+    },
+    "listView": {
+      "n": 13,
+      "p50": 135,
+      "p95": 593
+    },
+    "textSave": {
+      "n": 13,
+      "p50": 213,
+      "p95": 240
+    },
+    "textSaveAndRefresh": {
+      "n": 13,
+      "p50": 345,
+      "p95": 784
+    },
+    "photoSave": {
+      "n": 13,
+      "p50": 2143,
+      "p95": 2436
+    },
+    "photoSaveAndRefresh": {
+      "n": 13,
+      "p50": 2291,
+      "p95": 2566
+    }
+  }
+}

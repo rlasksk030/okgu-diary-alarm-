@@ -34,18 +34,20 @@ export async function login(env:Env,name:unknown,pin:unknown,remember:unknown,ob
  const insert=(verifiedHash:string)=>env.DB.prepare('INSERT INTO sessions(token_hash,account_id,expires_at) SELECT ?,a.id,? FROM accounts a JOIN credentials c ON c.account_id=a.id WHERE a.id=? AND a.active=1 AND c.pin_hash=?').bind(tokenHash,expires,row.account_id,verifiedHash);
  // Reset attempts only after this exact verified credential created a live session.
  const reset=(verifiedHash:string)=>env.DB.prepare('DELETE FROM login_attempts WHERE key=? AND EXISTS(SELECT 1 FROM sessions s JOIN accounts a ON a.id=s.account_id JOIN credentials c ON c.account_id=a.id WHERE s.token_hash=? AND a.id=? AND a.active=1 AND c.pin_hash=?)').bind(key,tokenHash,row.account_id,verifiedHash);
+ const live=()=>env.DB.prepare('SELECT a.*,c.label FROM sessions s JOIN accounts a ON a.id=s.account_id JOIN classes c ON c.id=a.class_id WHERE s.token_hash=? AND s.expires_at>? AND a.active=1').bind(tokenHash,Date.now());
  trace('session_create_begin');
  const changed=await env.DB.batch([
   ...(legacy?[env.DB.prepare('UPDATE credentials SET pin_hash=? WHERE account_id=? AND pin_hash=?').bind(newHash,row.account_id,row.pin_hash)]:[]),
-  insert(newHash),reset(newHash)]);
+  insert(newHash),reset(newHash),live()]);
+ let account=changed[legacy?3:2].results[0] as Account|undefined;
  if(changed[legacy?1:0].meta.changes!==1){
   // A changed credential must be verified again; an identical already-verified
   // hash needs no duplicate KDF. The atomic insert always rechecks active/hash.
   const current=await env.DB.prepare('SELECT pin_hash FROM credentials WHERE account_id=?').bind(row.account_id).first<{pin_hash:string}>();
   if(!current)throw new AppError('E_AUTH',401);
   if(current.pin_hash!==row.pin_hash){trace('conflict_verify_begin');if(!await verifyPin(secret,current.pin_hash,env,row.account_id))throw new AppError('E_AUTH',401);trace('conflict_verify_done');}
-  const inserted=await env.DB.batch([insert(current.pin_hash),reset(current.pin_hash)]);
-  if(inserted[0].meta.changes!==1)throw new AppError('E_AUTH',401);
+  const inserted=await env.DB.batch([insert(current.pin_hash),reset(current.pin_hash),live()]);
+  if(inserted[0].meta.changes!==1)throw new AppError('E_AUTH',401);account=inserted[2].results[0] as Account|undefined;
  }
- trace('session_create_done');const account=await accountForTokenHash(env,tokenHash);trace('session_validate_done');return {...pub(account),token};
+ trace('session_create_done');if(!account)throw new AppError('E_AUTH',401);trace('session_validate_done');return {...pub(account),token};
 }

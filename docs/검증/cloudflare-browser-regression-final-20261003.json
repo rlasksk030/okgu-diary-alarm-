@@ -1,0 +1,202 @@
+{
+  "environment": "deployed Cloudflare trial",
+  "frontendOrigin": "https://okgu-diary-pages-trial.rlasksk030.workers.dev",
+  "browser": "Linux Chromium; viewport only, not physical mobile devices",
+  "results": [
+    {
+      "name": "first visit and original login UI",
+      "ms": 353,
+      "result": "passed"
+    },
+    {
+      "name": "login with zero-prefixed PIN; no GAS request",
+      "ms": 4693,
+      "result": "passed"
+    },
+    {
+      "name": "text save committed then UI success",
+      "ms": 153,
+      "result": "passed"
+    },
+    {
+      "name": "quick diary saves through same authenticated server",
+      "ms": 1564,
+      "result": "passed"
+    },
+    {
+      "name": "binary photo upload and diary save",
+      "ms": 2563,
+      "result": "passed"
+    },
+    {
+      "name": "photo edit retains existing attachment",
+      "ms": 1554,
+      "result": "passed"
+    },
+    {
+      "name": "failed save preserves text and attachment; retry",
+      "ms": 2046,
+      "result": "passed"
+    },
+    {
+      "name": "search queries server; stat/calendar and authenticated photo load",
+      "ms": 2031,
+      "result": "passed"
+    },
+    {
+      "name": "search more button loads all fifty-one matching records",
+      "ms": 6155,
+      "result": "passed"
+    },
+    {
+      "name": "yearbook opens synchronously and waits for authenticated photos",
+      "ms": 2431,
+      "result": "passed"
+    },
+    {
+      "name": "offline save keeps draft; reconnection permits retry",
+      "ms": 233,
+      "result": "passed"
+    },
+    {
+      "name": "PWA registration retains scope and does not cache account data",
+      "ms": 57,
+      "result": "passed"
+    },
+    {
+      "name": "revisit restores session; logout/account switch isolates data",
+      "ms": 4087,
+      "result": "passed"
+    },
+    {
+      "name": "teacher dashboard uses one bundle and existing renderers",
+      "ms": 5111,
+      "result": "passed"
+    },
+    {
+      "name": "teacher student modal loads a second page and retains comment draft",
+      "ms": 228,
+      "result": "passed"
+    },
+    {
+      "name": "no JavaScript exceptions and no chunking/GAS calls",
+      "ms": 1,
+      "result": "passed"
+    }
+  ],
+  "rpcMethods": [
+    "login",
+    "getStudentDashboard",
+    "getMyEntries",
+    "getMyEntries",
+    "getMyEntries",
+    "getMyPushStatus",
+    "getNotifications",
+    "saveEntry",
+    "getStudentDashboard",
+    "getMyEntries",
+    "getMyEntries",
+    "getMyEntries",
+    "saveEntry",
+    "getStudentDashboard",
+    "getMyEntries",
+    "getMyEntries",
+    "getMyEntries",
+    "saveEntry",
+    "getStudentDashboard",
+    "getMyEntries",
+    "getMyEntries",
+    "getMyEntries",
+    "getNotifications",
+    "saveEntry",
+    "getStudentDashboard",
+    "getMyEntries",
+    "getMyEntries",
+    "getMyEntries",
+    "saveEntry",
+    "saveEntry",
+    "getStudentDashboard",
+    "getMyEntries",
+    "getMyEntries",
+    "getMyEntries",
+    "searchEntries",
+    "getStudentDashboard",
+    "getMyEntries",
+    "getMyEntries",
+    "getMyEntries",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "saveEntry",
+    "searchEntries",
+    "searchEntries",
+    "exportEntries",
+    "exportEntries",
+    "exportEntries",
+    "exportEntries",
+    "exportEntries",
+    "getNotifications",
+    "saveEntry",
+    "saveEntry",
+    "getStudentDashboard",
+    "verifyToken",
+    "getStudentDashboard",
+    "getMyEntries",
+    "getMyEntries",
+    "getMyEntries",
+    "getMyEntries",
+    "getMyPushStatus",
+    "getNotifications",
+    "logout",
+    "verifyToken",
+    "login",
+    "getStudentDashboard"
+  ]
+}

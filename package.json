@@ -29,7 +29,13 @@
     "profile:login:cpu": "node --import tsx scripts/profile-login-cpu.mjs",
     "trial:trace-login": "node --use-env-proxy --import tsx scripts/trace-trial-login.mjs",
     "test:ui:main": "node scripts/compare-main-ui.mjs",
-    "test:pin-reset": "node --use-env-proxy scripts/student-pin-browser-test.mjs"
+    "test:pin-reset": "node --use-env-proxy scripts/student-pin-browser-test.mjs",
+    "test:features": "node scripts/feature-inventory.mjs",
+    "test:flows:trial": "node --use-env-proxy scripts/final-flows-browser-test.mjs",
+    "test:pwa:trial": "node --use-env-proxy scripts/cross-origin-pwa-test.mjs",
+    "test:freeze:trial": "node --use-env-proxy scripts/trial-freeze-test.mjs",
+    "deploy:trial:frontend": "node --use-env-proxy scripts/deploy-trial-frontend.mjs",
+    "migrate:source:rehearsal": "node scripts/source-normalize-rehearsal.mjs"
   },
   "dependencies": {
     "@noble/hashes": "2.4.0",

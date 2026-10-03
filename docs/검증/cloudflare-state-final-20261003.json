@@ -1,0 +1,21 @@
+{
+  "at": "2026-10-02T23:52:17.969Z",
+  "health": {
+    "ok": true,
+    "runtime": "Cloudflare Workers",
+    "storage": "D1 + private R2",
+    "push": "disabled",
+    "writes": "active",
+    "version": "cf-20261002"
+  },
+  "privateKdf": true,
+  "diagnosticsOff": true,
+  "noPushSecret": true,
+  "webOrigins": "https://okgu-diary-trial.rlasksk030.workers.dev,https://okgu-diary-pages-trial.rlasksk030.workers.dev,https://rlasksk030.github.io",
+  "writeMode": "active",
+  "r2Public": false,
+  "r2CustomDomains": 0,
+  "accountSecretsIncluded": false,
+  "billingChangeExecuted": false,
+  "cronCount": 0
+}

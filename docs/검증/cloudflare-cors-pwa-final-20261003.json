@@ -1,0 +1,45 @@
+{
+  "at": "2026-10-02T23:18:49.771Z",
+  "api": "https://okgu-diary-trial.rlasksk030.workers.dev",
+  "frontend": "https://okgu-diary-pages-trial.rlasksk030.workers.dev",
+  "results": [
+    {
+      "name": "independent deployed frontend: real CORS login, 30-day session and refresh",
+      "success": true,
+      "durationMs": 5651
+    },
+    {
+      "name": "cross-origin authenticated binary photo save and display; private diary remains protected",
+      "success": true,
+      "durationMs": 1326
+    },
+    {
+      "name": "legacy SW update waits while a draft is open; script path/scope and manifest remain identical",
+      "success": true,
+      "durationMs": 6900
+    },
+    {
+      "name": "after closing old clients, new SW activates; remembered login and previous photo survive",
+      "success": true,
+      "durationMs": 2773
+    },
+    {
+      "name": "real GitHub Pages browser origin with intercepted candidate assets: CORS, login, photo access and logout",
+      "success": true,
+      "durationMs": 3790
+    },
+    {
+      "name": "no Apps Script requests or browser exceptions",
+      "success": true,
+      "durationMs": 0
+    }
+  ],
+  "errors": [],
+  "gasRequests": 0,
+  "limitations": [
+    "GitHub Pages-origin candidate assets were intercepted in an isolated browser, not deployed to production Pages",
+    "Hosted independent frontend/API are real Cloudflare HTTPS deployments",
+    "Chromium mobile viewport only; no physical phone or installed home-screen app",
+    "Unsent drafts survive waiting updates in the open tab, not arbitrary browser closure"
+  ]
+}

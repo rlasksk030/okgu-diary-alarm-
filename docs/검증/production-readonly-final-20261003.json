@@ -1,0 +1,47 @@
+{
+  "at": "2026-10-02T23:25:11.034Z",
+  "results": [
+    {
+      "url": "https://rlasksk030.github.io/okgu-diary-alarm-/manifest.json",
+      "status": 200,
+      "cacheControl": "max-age=600",
+      "manifest": {
+        "name": "옥구초 일기 알림",
+        "short_name": "일기알림",
+        "start_url": "./",
+        "scope": "./",
+        "display": "standalone",
+        "background_color": "#ffffff",
+        "theme_color": "#111111",
+        "icons": [
+          {
+            "src": "okgu_icon.png",
+            "sizes": "192x192",
+            "type": "image/png"
+          },
+          {
+            "src": "okgu_icon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://rlasksk030.github.io/okgu-diary-alarm-/sw.js",
+      "status": 200,
+      "cacheControl": "max-age=600",
+      "hasFetchCacheHandler": false,
+      "forcesSkipWaiting": true
+    },
+    {
+      "url": "https://okgu-push-server030.vercel.app/api/send-push",
+      "status": 405,
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "readOnly": true,
+      "sendOrSecretVerified": false
+    }
+  ],
+  "productionWrites": 0
+}
