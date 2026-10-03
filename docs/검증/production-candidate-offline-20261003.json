@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-03T05:47:08.491Z",
+  "candidateOnly": true,
+  "preview": true,
+  "resourceCreation": false,
+  "sourceImport": false,
+  "operatingPagesChanged": false,
+  "operatingPublishMode": "legacy:main:/",
+  "plannedApiOrigin": "https://okgu-diary-api.rlasksk030.workers.dev",
+  "studentUrl": "https://rlasksk030.github.io/okgu-diary-alarm-/",
+  "staticFiles": [
+    "index.html",
+    "manifest.json",
+    "sw.js",
+    "okgu_icon.png",
+    "rpc.js",
+    "fast-ui.js",
+    "student-pin.js"
+  ],
+  "existingVapidFingerprint": "dcc4d6ea18845f94f4c4dced9b8760ba824b0ce6247a0ef382e51f46601e085c",
+  "writeMode": "paused",
+  "pushMode": "disabled",
+  "crons": [],
+  "billingChanged": false,
+  "sourceDataGate": "Actual private source backup, identity/header/relationship/photo comparison and dedicated production D1/private R2 verification remain mandatory before deploying/publishing; this candidate is not a deployment gate or proof of imported data."
+}

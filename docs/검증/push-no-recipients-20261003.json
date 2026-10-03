@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-03T05:45:07.440Z",
+  "serverOrigin": "https://okgu-push-server030.vercel.app",
+  "route": "/api/send-push",
+  "httpStatus": 200,
+  "ok": true,
+  "sent": 0,
+  "failed": 0,
+  "expiredCount": 0,
+  "subscriptionsSubmitted": 0,
+  "actualStudentNotifications": 0,
+  "credentialValueRecorded": false,
+  "vapidPublicKeyEqualityVerified": false,
+  "deployedSourceCommitVerified": false,
+  "verification": "No-recipient request only. Does not prove delivery or equality of Vercel VAPID public key with operating Pages key."
+}

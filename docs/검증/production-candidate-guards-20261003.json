@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-03T05:54:28.639Z",
+  "cases": [
+    {
+      "name": "missing-real-database",
+      "rejected": true
+    },
+    {
+      "name": "invalid-database",
+      "rejected": true
+    },
+    {
+      "name": "trial-database",
+      "rejected": true
+    },
+    {
+      "name": "trial-origin",
+      "rejected": true
+    }
+  ],
+  "productionChanges": 0
+}

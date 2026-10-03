@@ -1,0 +1,45 @@
+{
+  "at": "2026-10-03T05:32:42.272Z",
+  "productionTransitionApproved": true,
+  "googleSourceExportAvailable": false,
+  "originalPhotosAvailable": false,
+  "operatingWriteFreezeExecuted": false,
+  "productionChanged": false,
+  "paidChanged": false,
+  "githubPages": {
+    "status": 200,
+    "buildType": "legacy",
+    "source": {
+      "branch": "main",
+      "path": "/"
+    },
+    "htmlUrl": "https://rlasksk030.github.io/okgu-diary-alarm-/",
+    "httpsEnforced": true
+  },
+  "githubRepository": {
+    "status": 200,
+    "defaultBranch": "main",
+    "private": false,
+    "permissions": {
+      "admin": true,
+      "maintain": true,
+      "push": true,
+      "triage": true,
+      "pull": true
+    }
+  },
+  "pages": {
+    "status": 200,
+    "legacyAppsScript": true,
+    "htmlBytes": 246563
+  },
+  "cloudflareTokenActive": true,
+  "trialHealth": {
+    "ok": true,
+    "runtime": "Cloudflare Workers",
+    "storage": "D1 + private R2",
+    "push": "disabled",
+    "writes": "active",
+    "version": "cf-20261002"
+  }
+}

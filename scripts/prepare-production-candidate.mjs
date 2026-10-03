@@ -1,0 +1,35 @@
+// Offline candidate only: never deploys, imports, freezes or edits operating Pages.
+import {readFile,writeFile,mkdir,copyFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {requireTrialBranch} from './lib/trial-cloudflare.mjs';
+requireTrialBranch();
+const origin=process.env.OKGU_PRODUCTION_API_ORIGIN;
+if(!origin||!/^https:\/\/okgu-diary-api\.[a-z0-9-]+\.workers\.dev$/.test(origin))throw Error('E_PRODUCTION_API_CANDIDATE');
+if(process.argv.some(a=>a!=='--preview'&&a!==process.argv[0]&&a!==process.argv[1]))throw Error('E_CANDIDATE_ONLY');
+const preview=process.argv.includes('--preview'),databaseId=process.env.OKGU_PRODUCTION_D1_DATABASE_ID;
+const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+if(databaseId&&(!uuid.test(databaseId)||databaseId.startsWith('00000000-')))throw Error('E_PRODUCTION_DATABASE_REQUIRED');
+if(!preview&&!databaseId)throw Error('E_PRODUCTION_DATABASE_REQUIRED');
+let trialId='';try{trialId=JSON.parse(await readFile('.local/trial-resources.json','utf8')).databaseId;}catch{}
+if(databaseId&&(databaseId===trialId||databaseId===process.env.OKGU_TRIAL_D1_DATABASE_ID))throw Error('E_TRIAL_DATABASE_REFUSED');
+const result=spawnSync('git',['show','origin/main:index.html'],{encoding:'utf8'});
+if(result.status!==0)throw Error('E_MAIN_SOURCE_REQUIRED');
+const vapid=/const\s+PUSH_PUBLIC_KEY\s*=\s*['"]([A-Za-z0-9_-]{87})['"]/.exec(result.stdout)?.[1];
+if(!vapid)throw Error('E_EXISTING_PUBLIC_VAPID_REQUIRED');
+const source=JSON.parse(await readFile('wrangler.jsonc','utf8'));
+delete source.assets;
+source.name='okgu-diary-api';source.main=resolve('worker/index.ts');source.preview_urls=false;
+source.vars={WEB_ORIGINS:'https://rlasksk030.github.io',APP_URL:'https://rlasksk030.github.io/okgu-diary-alarm-/',WRITE_MODE:'paused',PUSH_MODE:'disabled'};
+source.triggers={crons:[]};source.observability={enabled:false};
+source.d1_databases=[{binding:'DB',database_name:'okgu-diary-production',database_id:databaseId||'00000000-0000-0000-0000-000000000000',migrations_dir:resolve('migrations')}];
+source.r2_buckets=[{binding:'PHOTOS',bucket_name:'okgu-diary-production-private'}];
+const directory=resolve('.local/production-candidate'),site=directory+'/pages';await mkdir(site,{recursive:true,mode:0o700});
+await writeFile(directory+'/wrangler.production.json',JSON.stringify(source,null,2)+'\n',{mode:0o600});
+const files=['index.html','manifest.json','sw.js','okgu_icon.png','rpc.js','fast-ui.js','student-pin.js'];
+for(const file of files)await copyFile(file,site+'/'+file);
+await writeFile(site+'/config.js','window.OKGU_CONFIG='+JSON.stringify({apiOrigin:origin,vapidPublicKey:vapid,version:'cf-20261002'})+';\n');
+await writeFile(site+'/.nojekyll','');
+const report={at:new Date().toISOString(),candidateOnly:true,preview,resourceCreation:false,sourceImport:false,operatingPagesChanged:false,operatingPublishMode:'legacy:main:/',plannedApiOrigin:origin,studentUrl:source.vars.APP_URL,staticFiles:files,existingVapidFingerprint:createHash('sha256').update(vapid).digest('hex'),writeMode:'paused',pushMode:'disabled',crons:[],billingChanged:false,sourceDataGate:'Actual private source backup, identity/header/relationship/photo comparison and dedicated production D1/private R2 verification remain mandatory before deploying/publishing; this candidate is not a deployment gate or proof of imported data.'};
+await writeFile(directory+'/candidate-summary.json',JSON.stringify(report,null,2)+'\n',{mode:0o600});console.log(JSON.stringify(report));
