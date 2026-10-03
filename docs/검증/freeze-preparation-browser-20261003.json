@@ -1,0 +1,30 @@
+{
+  "at": "2026-10-03T05:16:34.686Z",
+  "environment": "actual Cloudflare synthetic trial frontend and paused API",
+  "results": [
+    {
+      "name": "unuploaded attachment, body, date, private scope and remembered session survive actual photo 503",
+      "success": true
+    },
+    {
+      "name": "uploaded photo reference, body, date, private scope and remembered session survive actual diary 503",
+      "success": true
+    },
+    {
+      "name": "previously rejected upload retry commits exactly one private diary with accessible photo; clears editor only after success; duplicate click suppressed",
+      "success": true
+    },
+    {
+      "name": "already uploaded retry commits exactly one private diary with accessible photo; clears editor only after success; duplicate click suppressed",
+      "success": true
+    }
+  ],
+  "gasRequests": 0,
+  "errors": [],
+  "productionFreezeExecuted": false,
+  "physicalPhone": false,
+  "limitations": [
+    "Open-tab draft and attachment retention only; closing/reloading the unsaved editor is not durable backup",
+    "Legacy Apps Script freeze has not been installed or tested against production"
+  ]
+}

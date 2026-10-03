@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-03T05:21:30.631Z",
+  "syntheticOnly": true,
+  "environment": "isolated local workerd D1/R2",
+  "success": true,
+  "tables": 24,
+  "photos": 3,
+  "checks": [
+    "post-cutover new diary and original/thumbnail preserved",
+    "pre-existing diary edit/version and soft-deletion preserved",
+    "comment author and reply parent preserved",
+    "likes and all account IDs preserved",
+    "current PBKDF2-600000 hash preserved; reset student session stays revoked; other teacher session preserved",
+    "every table restored exactly; foreign keys and every object SHA256 matched",
+    "current runtime storage and original baseline never overwritten"
+  ],
+  "completeGasRollback": false,
+  "remoteBindingRestore": false
+}

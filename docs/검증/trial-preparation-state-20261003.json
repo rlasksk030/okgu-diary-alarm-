@@ -1,0 +1,25 @@
+{
+  "at": "2026-10-03T05:17:49.811Z",
+  "health": {
+    "ok": true,
+    "runtime": "Cloudflare Workers",
+    "storage": "D1 + private R2",
+    "push": "disabled",
+    "writes": "active",
+    "version": "cf-20261002"
+  },
+  "databaseWritesPaused": 0,
+  "cronCount": 0,
+  "loginDiagnosticsConfigured": false,
+  "pushSecretConfigured": false,
+  "r2Public": false,
+  "customDomains": 0,
+  "studentSourceImported": false,
+  "operatingChanges": false,
+  "activeVersions": [
+    {
+      "id": "e688f10d-ac13-42e6-8920-cd030d7d4337",
+      "percentage": 100
+    }
+  ]
+}

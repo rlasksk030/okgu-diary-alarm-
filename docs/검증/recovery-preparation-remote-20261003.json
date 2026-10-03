@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-03T05:14:12.275Z",
+  "success": true,
+  "syntheticOnly": true,
+  "backupSource": "actual paused Cloudflare trial D1/private R2",
+  "restoreTarget": "new isolated local workerd D1/R2",
+  "tables": 25,
+  "photos": 151,
+  "newWritesCaptured": 4,
+  "exactRowsRelationsObjects": true,
+  "sharedBarrierCaptured": true,
+  "remoteDatabaseWrites": "operation_control freeze flag only",
+  "remoteBindingRestore": false,
+  "productionSourceAccess": false,
+  "completeGasRollback": false
+}

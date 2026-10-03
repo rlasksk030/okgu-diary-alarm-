@@ -35,7 +35,12 @@
     "test:pwa:trial": "node --use-env-proxy scripts/cross-origin-pwa-test.mjs",
     "test:freeze:trial": "node --use-env-proxy scripts/trial-freeze-test.mjs",
     "deploy:trial:frontend": "node --use-env-proxy scripts/deploy-trial-frontend.mjs",
-    "migrate:source:rehearsal": "node scripts/source-normalize-rehearsal.mjs"
+    "migrate:source:rehearsal": "node scripts/source-normalize-rehearsal.mjs",
+    "test:freeze:browser": "node --use-env-proxy scripts/freeze-browser-rehearsal.mjs",
+    "recovery:rehearsal": "node --import tsx scripts/recovery-rehearsal.mjs",
+    "backup:trial:remote": "node --use-env-proxy --import tsx scripts/backup-trial-remote.mjs",
+    "recovery:trial:rehearsal": "node --use-env-proxy --import tsx scripts/remote-recovery-rehearsal.mjs",
+    "trial:write-barrier": "node --use-env-proxy scripts/trial-write-barrier.mjs"
   },
   "dependencies": {
     "@noble/hashes": "2.4.0",

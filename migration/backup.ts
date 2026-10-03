@@ -9,7 +9,9 @@ export async function capture(db:D1Database,r2:R2Bucket){
  // D1 batch reads one consistent transaction; photos are immutable by their upload/content keys.
  const results=await db.batch(tables.map(t=>db.prepare('SELECT * FROM '+quote(t.name))));
  const rows=Object.fromEntries(tables.map((t,i)=>[t.name,results[i].results]));
- const sql=['PRAGMA defer_foreign_keys=ON;',...schema.map(s=>s.sql+';')];
+ // Restore authoritative rows before enabling triggers. A captured maintenance
+ // barrier must not reject the restore itself or fire application side effects.
+ const sql=['PRAGMA defer_foreign_keys=ON;',...schema.filter(s=>s.type!=='trigger').map(s=>s.sql+';')];
  const order=['classes','accounts','credentials','diaries','photo_uploads','attachments','board_posts','board_comments','diary_comments','board_likes','praises','teacher_notes','sessions'];
  const ordered=tables.slice().sort((a,b)=>(order.indexOf(a.name)<0?100:order.indexOf(a.name))-(order.indexOf(b.name)<0?100:order.indexOf(b.name)));
  for(const table of ordered){
@@ -23,11 +25,19 @@ export async function capture(db:D1Database,r2:R2Bucket){
  }
  const photos=[];
  for(const path of paths){const object=await r2.get(path);if(!object)throw new Error('BACKUP_MISSING_OBJECT');const bytes=Buffer.from(await object.arrayBuffer());photos.push({path,bytes:bytes.toString('base64'),sha256:sha(bytes),size:bytes.length,mime:object.httpMetadata?.contentType||'application/octet-stream'});}
- sql.push('PRAGMA defer_foreign_keys=OFF;');
- return {format:'okgu-d1-r2-backup-v2',capturedAt:new Date().toISOString(),rows,schema,sql:sql.join('\n'),photos};
+ sql.push(...schema.filter(s=>s.type==='trigger').map(s=>s.sql+';'),'PRAGMA defer_foreign_keys=OFF;');
+ const backup={format:'okgu-d1-r2-backup-v2',capturedAt:new Date().toISOString(),rows,schema,sql:sql.join('\n'),photos};
+ verifyObjects(backup);return backup;
 }
 export function verifyObjects(backup:any){
  if(backup.format!=='okgu-d1-r2-backup-v2')throw new Error('BACKUP_FORMAT');
  for(const f of backup.photos){const bytes=Buffer.from(f.bytes,'base64');if(sha(bytes)!==f.sha256||bytes.length!==f.size)throw new Error('BACKUP_PHOTO_CHECKSUM');}
+ const objects=new Map(backup.photos.map((f:any)=>[f.path,f]));
+ for(const row of [...(backup.rows.attachments||[]),...(backup.rows.photo_uploads||[])] as any[]){
+  if(row.ready===0)continue;
+  const original=objects.get(row.object_path) as any;
+  if(!original||original.sha256!==row.sha256||original.size!==row.byte_size)throw new Error('BACKUP_PHOTO_REFERENCE_MISMATCH');
+  if(row.thumbnail_path&&!objects.has(row.thumbnail_path))throw new Error('BACKUP_THUMBNAIL_MISSING');
+ }
 }
 export const fingerprint=(rows:any[])=>sha(JSON.stringify(rows.map(r=>Object.fromEntries(Object.entries(r).sort(([a],[b])=>a.localeCompare(b)))).map(r=>JSON.stringify(r)).sort()));

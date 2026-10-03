@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-03T05:12:13.939Z",
+  "providedServer": true,
+  "providedServerSha256": "44fab4356facf2e79466b0d4b530ea9422a1247c6e7d98e8e70fa1b80f7a3e2f",
+  "spreadsheetIdProvided": true,
+  "sourceSpreadsheetCellsRead": false,
+  "driveFolderNameProvided": "OKGU_DIARY_사진",
+  "driveFolderIdProvided": false,
+  "driveOriginalsRead": false,
+  "pushServerUrlProvided": true,
+  "pushBearerSettingAlreadyProvided": true,
+  "mainPublicVapidFingerprint": "dcc4d6ea18845f94f4c4dced9b8760ba824b0ce6247a0ef382e51f46601e085c",
+  "pushReadOnlyRouteStatus": 405,
+  "pushPostRequests": 0,
+  "latestDeployedServerMatch": false,
+  "actualTriggersRead": false,
+  "googleAuthenticatedConnectorAvailable": false,
+  "sourceExamination": "provided code only; no anonymous student API scraping"
+}
