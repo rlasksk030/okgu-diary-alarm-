@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-03T14:54:14.923223+00:00",
+  "environment": "isolated synthetic SQLite only",
+  "tests": 3,
+  "pass": 3,
+  "fail": 0,
+  "partialImportResumeVerified": true,
+  "changedTargetRefused": true,
+  "encodedChunkLimitsVerified": true,
+  "remoteRealSourceImported": false,
+  "gasDiagnosticRequired": false,
+  "guardOnlyCodeReviewTests": 2,
+  "guardOnlyCodeReviewPass": 2
+}

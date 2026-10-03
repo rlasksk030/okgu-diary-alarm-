@@ -1,0 +1,21 @@
+{
+  "at": "2026-10-03T14:20:30.819Z",
+  "apiOrigin": "https://okgu-diary-api.rlasksk030.workers.dev",
+  "apiDeployed": true,
+  "workerVersion": "1057fb1e-4581-4e41-869e-25fec9e6e7c5",
+  "sourceImported": false,
+  "accounts": 0,
+  "diaries": 0,
+  "writeMode": "paused",
+  "d1Barrier": 1,
+  "push": "disabled",
+  "cronCount": 0,
+  "allowedPagesOrigin": "https://rlasksk030.github.io",
+  "preflightAllowed": 204,
+  "untrustedOriginRejected": 403,
+  "loginBlocked": 503,
+  "photoWritesBlocked": 503,
+  "operatingPagesChanged": false,
+  "googleSourceFrozen": false,
+  "billingActivation": false
+}

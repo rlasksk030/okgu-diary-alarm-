@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-03T14:43:41.678Z",
+  "existingProvidedPrivateSourceUsed": true,
+  "outputMatchesPreviouslyVerified28GuardCandidateAfterLineEndingNormalization": true,
+  "sourceCodeChanged": false,
+  "lineEndingsNormalized": true,
+  "normalizedSourceSha256": "8f4f9b1ba0d650b96e1c6a929a4e569a1c33d8200c8b8895878c4545e785c957",
+  "externalNetworkRequests": 0,
+  "googleProjectChanged": false,
+  "browser": "Linux Chromium; intercepted allowed origin, no network",
+  "managedFileUrlBlocked": true,
+  "ownChromeLocalFileExecutionVerified": false,
+  "deploymentExecuted": false
+}

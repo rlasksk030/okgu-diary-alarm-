@@ -2,12 +2,20 @@
 // the owner confirms the CURRENT deployment matches the previously supplied Code.gs.
 import {readFile,writeFile,mkdir,readdir,realpath} from 'node:fs/promises';
 import path from 'node:path';import {sourceFields,sha,stableId,plan} from '../migration/core.ts';
+import {verifiedGuardOnly} from '../migration/source/verify-freeze-code.mjs';
 try{
  const local=await realpath('.local'),input=await realpath(process.argv[2]);if(!input.startsWith(local+path.sep))throw Error('PRIVATE_INPUT_REQUIRED');
  const original=await readFile(input),raw=JSON.parse(original);if(!['okgu-sheet-raw-export-v1','okgu-sheet-raw-export-v2'].includes(raw.format)||!raw.complete||raw.timeZone!=='Asia/Seoul')throw Error('COMPLETE_KST_SOURCE_REQUIRED');
  const sourceId='sheet:'+sha(String(raw.provenance?.sourceSpreadsheetId||''));if(!raw.provenance?.sourceSpreadsheetId)throw Error('SOURCE_ID_REQUIRED');
  const privateServer=process.argv[3];if(!privateServer)throw Error('PREVIOUSLY_SUPPLIED_CODE_REQUIRED');const codeHash=sha(await readFile(privateServer));if(codeHash!=='44fab4356facf2e79466b0d4b530ea9422a1247c6e7d98e8e70fa1b80f7a3e2f')throw Error('SOURCE_CODE_POSITIONAL_ADAPTER_MISMATCH');
- let reviewed=false;if(process.argv[4]){const reviewPath=await realpath(process.argv[4]);if(!reviewPath.startsWith(local+path.sep))throw Error('PRIVATE_REVIEW_REQUIRED');const review=JSON.parse(await readFile(reviewPath));if(review.currentDeploymentMatchesSuppliedCode!==true||review.suppliedCodeSha256!==codeHash||review.rawSha256!==sha(original))throw Error('CURRENT_DEPLOYMENT_REVIEW_MISMATCH');reviewed=true;}
+ let reviewed=false;if(process.argv[4]){const reviewPath=await realpath(process.argv[4]);if(!reviewPath.startsWith(local+path.sep))throw Error('PRIVATE_REVIEW_REQUIRED');const review=JSON.parse(await readFile(reviewPath));
+  // A verified maintenance guard changes the code bytes, not source field positions.
+  // Bind that exception to the exact prepared candidate; do not accept an arbitrary changed version.
+  let matches=review.currentDeploymentMatchesSuppliedCode===true;
+  if(!matches&&review.currentDeploymentMatchesVerifiedFreezeCandidate===true){
+   matches=verifiedGuardOnly(await readFile(privateServer,'utf8'),await readFile('.local/source-freeze/Code.candidate.private.gs','utf8'),review);
+  }
+  if(!matches||review.suppliedCodeSha256!==codeHash||review.rawSha256!==sha(original))throw Error('CURRENT_DEPLOYMENT_REVIEW_MISMATCH');reviewed=true;}
  const entities={},names=new Map(),teacherBlankClassIds=[],sourceDispositions=[],likeOccurrences=new Map();
  for(const [entity,source] of Object.entries(raw.sheets)){
   const headers=sourceFields[entity];if(!headers||source.headers.length!==headers.length)throw Error('UNKNOWN_SCHEMA_REQUIRES_REVIEW');entities[entity]=[];
@@ -42,7 +50,7 @@ try{
  for(const row of entities['일기기록']||[]){const urls=JSON.parse(String(row.cells['사진URLs']||'[]'));row.cells['사진URLs']=JSON.stringify(urls.map((url,ordinal)=>{const f=(inputFiles||[]).find(f=>f.diaryId===row.id&&f.ordinal===ordinal&&f.sourceUrl===url);if(!f)throw Error('PHOTO_MANIFEST_REQUIRED');return f.id;}));}
  const snapshot={format:1,sourceId,synthetic:raw.synthetic===true,complete:true,capturedAt:raw.capturedAt,classId:stableId(sourceId,'class','single-source-roster'),classLabel,identityReviewed:reviewed,teacherBlankClassIds,sourceDispositions,entities,files};
  const output=path.join(local,'source-review');await mkdir(output,{recursive:true,mode:0o700});await writeFile(path.join(output,'snapshot.candidate.private.json'),JSON.stringify(snapshot),{mode:0o600});
- await writeFile(path.join(output,'review.template.private.json'),JSON.stringify({currentDeploymentMatchesSuppliedCode:false,suppliedCodeSha256:codeHash,rawSha256:sha(original)}),{mode:0o600});
+ await writeFile(path.join(output,'review.template.private.json'),JSON.stringify({currentDeploymentMatchesSuppliedCode:false,currentDeploymentMatchesVerifiedFreezeCandidate:false,beforeFreezeNormalizedSha256:'',deployedCodeNormalizedSha256:'',suppliedCodeSha256:codeHash,rawSha256:sha(original)}),{mode:0o600});
  const checked=plan(snapshot),issueCounts={};for(const i of checked.issues)issueCounts[i.code]=(issueCounts[i.code]||0)+1;
  console.log(JSON.stringify({mode:'offline private candidate only',identityReviewed:reviewed,counts:checked.counts,photos:files.length,archivedOriginalRelationships:sourceDispositions.filter(d=>d.reason==='missing-source-parent').length,archivedFlagsWithoutRecord:sourceDispositions.filter(d=>d.reason==='source-flags-without-record').length,archivedDuplicateLikes:sourceDispositions.filter(d=>d.reason==='duplicate-source-like').length,teacherBlankClassExplicitMappings:teacherBlankClassIds.length,issueCounts,sourceWrites:false,remoteImport:false}));
 }catch(e){console.error(/^[A-Z_]+$/.test(e.message)?e.message:'PRIVATE_SOURCE_REVIEW_FAILED');process.exitCode=1;}
