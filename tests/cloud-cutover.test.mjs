@@ -35,6 +35,17 @@ test('claimed old pages cannot send JSONP, POST or redirect requests to GAS',asy
  }
  assert.equal(network,0);
 });
+test('service worker keeps Cloud IDs in the displayed notification and constrains click targets',async()=>{
+ const handlers={},shown=[];let settled;
+ const base='https://rlasksk030.github.io/okgu-diary-alarm-/';
+ vm.runInNewContext(await readFile('sw.js','utf8'),{URL,self:{location:{href:base+'sw.js'},
+  addEventListener:(name,handler)=>handlers[name]=handler,
+  registration:{showNotification:async(title,options)=>shown.push({title,options})}}});
+ handlers.push({data:{json:()=>({entryId:'entry',studentId:'student',classId:'class',url:base+'?open=diary&id=entry'})},waitUntil:p=>settled=p});await settled;
+ assert.equal(shown[0].options.data.entryId,'entry');assert.equal(shown[0].options.data.studentId,'student');assert.equal(shown[0].options.data.classId,'class');
+ handlers.push({data:{json:()=>({url:'https://untrusted.invalid/'})},waitUntil:p=>settled=p});await settled;
+ assert.equal(shown[1].options.data.url,base);
+});
 test('failed D1 INSERT rolls back notifications and receipts; success links only a persisted row',async()=>{
  const db=await database();try{
   db.sqlite.exec("INSERT INTO classes VALUES('c','검증반');INSERT INTO accounts(id,legacy_identity,display_name,class_id,role) VALUES('s','test:s','검증학생','c','student'),('t','test:t','검증교사','c','teacher');");

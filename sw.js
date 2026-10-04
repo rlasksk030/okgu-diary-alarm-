@@ -41,7 +41,10 @@ self.addEventListener('push', event => {
   if(target.origin!==APP_URL.origin || !target.pathname.startsWith(APP_URL.pathname)) target=APP_URL;
   const tasks=[self.registration.showNotification(data.title || 'OKGU DIARY', {
     body:data.body||'새 알림이 있어요.',icon:'okgu_icon.png',badge:'okgu_icon.png',
-    tag:data.tag||'okgu-diary',data:{url:target.href}
+    tag:data.tag||'okgu-diary',data:{url:target.href,
+      ...Object.fromEntries(['entryId','studentId','classId']
+        .filter(key=>typeof data[key]==='string'&&data[key].length<=128)
+        .map(key=>[key,data[key]]))}
   })];
   if(self.registration.setAppBadge)tasks.push(self.registration.setAppBadge(Math.max(1,Number(data.badgeCount)||1)).catch(()=>{}));
   event.waitUntil(Promise.all(tasks));
