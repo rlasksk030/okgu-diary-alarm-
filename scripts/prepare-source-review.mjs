@@ -11,7 +11,8 @@ try{
  let reviewed=false;if(process.argv[4]){const reviewPath=await realpath(process.argv[4]);if(!reviewPath.startsWith(local+path.sep))throw Error('PRIVATE_REVIEW_REQUIRED');const review=JSON.parse(await readFile(reviewPath));
   // A verified maintenance guard changes the code bytes, not source field positions.
   // Bind that exception to the exact prepared candidate; do not accept an arbitrary changed version.
-  let matches=review.currentDeploymentMatchesSuppliedCode===true;
+  const approvedBackup=process.argv.includes('--approved-existing-backup-cutover')&&review.approvedExistingBackupCutover===true;
+  let matches=review.currentDeploymentMatchesSuppliedCode===true||approvedBackup;
   if(!matches&&review.currentDeploymentMatchesVerifiedFreezeCandidate===true){
    matches=verifiedGuardOnly(await readFile(privateServer,'utf8'),await readFile('.local/source-freeze/Code.candidate.private.gs','utf8'),review);
   }
@@ -48,7 +49,7 @@ try{
  let catalog=[];const catalogPath=paths.find(p=>path.basename(p)==='photo-catalog.private.json');if(catalogPath)catalog=JSON.parse(await readFile(catalogPath));
  const files=[];for(const f of inputFiles||[]){const recorded=catalog.find(c=>c.id===f.id)?.path||f.path;if(typeof recorded!=='string')throw Error('PHOTO_PATH_REQUIRED');const found=paths.filter(p=>p.endsWith(recorded)||path.basename(p)===path.basename(recorded));if(found.length!==1)throw Error('PHOTO_PATH_REVIEW');const location=await realpath(found[0]);if(!location.startsWith(local+path.sep))throw Error('PRIVATE_PHOTO_REQUIRED');const bytes=await readFile(location);if(sha(bytes)!==f.sha256||bytes.length!==f.size)throw Error('PHOTO_BYTES_MISMATCH');files.push({id:f.id,diaryId:f.diaryId,ordinal:f.ordinal,path:path.relative(process.cwd(),location),sha256:f.sha256,size:f.size,mime:f.mime});}
  for(const row of entities['일기기록']||[]){const urls=JSON.parse(String(row.cells['사진URLs']||'[]'));row.cells['사진URLs']=JSON.stringify(urls.map((url,ordinal)=>{const f=(inputFiles||[]).find(f=>f.diaryId===row.id&&f.ordinal===ordinal&&f.sourceUrl===url);if(!f)throw Error('PHOTO_MANIFEST_REQUIRED');return f.id;}));}
- const snapshot={format:1,sourceId,synthetic:raw.synthetic===true,complete:true,capturedAt:raw.capturedAt,classId:stableId(sourceId,'class','single-source-roster'),classLabel,identityReviewed:reviewed,teacherBlankClassIds,sourceDispositions,entities,files};
+ const snapshot={format:1,sourceId,synthetic:raw.synthetic===true,complete:true,capturedAt:raw.capturedAt,classId:stableId(sourceId,'class','single-source-roster'),classLabel,identityReviewed:reviewed,...(process.argv.includes('--approved-existing-backup-cutover')&&reviewed?{reviewBasis:'explicitly-approved-existing-backup-with-supplied-source-code'}:{}),teacherBlankClassIds,sourceDispositions,entities,files};
  const output=path.join(local,'source-review');await mkdir(output,{recursive:true,mode:0o700});await writeFile(path.join(output,'snapshot.candidate.private.json'),JSON.stringify(snapshot),{mode:0o600});
  await writeFile(path.join(output,'review.template.private.json'),JSON.stringify({currentDeploymentMatchesSuppliedCode:false,currentDeploymentMatchesVerifiedFreezeCandidate:false,beforeFreezeNormalizedSha256:'',deployedCodeNormalizedSha256:'',suppliedCodeSha256:codeHash,rawSha256:sha(original)}),{mode:0o600});
  const checked=plan(snapshot),issueCounts={};for(const i of checked.issues)issueCounts[i.code]=(issueCounts[i.code]||0)+1;

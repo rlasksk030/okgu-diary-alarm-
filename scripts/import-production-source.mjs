@@ -8,6 +8,9 @@ try{
  async function privateFile(p){const f=await realpath(p);if(!f.startsWith(local+path.sep))throw Error('E_PRIVATE_INPUT');return f;}
  const snapPath=await privateFile(process.argv[2]),rawPath=await privateFile(process.argv[3]),proofPath=await privateFile(process.argv[4]);
  const snapshot=JSON.parse(await readFile(snapPath)),rawBytes=await readFile(rawPath),raw=JSON.parse(rawBytes),proof=JSON.parse(await readFile(proofPath));
+ const approvedBackup=process.argv.includes('--approved-existing-backup-cutover');
+ if(proof.cutoverBasis==='explicitly-approved-existing-backup'&&(!approvedBackup||snapshot.reviewBasis!=='explicitly-approved-existing-backup-with-supplied-source-code'||proof.sourceFreezeVerified!==false||proof.latestDeltaComplete!==false))throw Error('E_APPROVED_BACKUP_SCOPE');
+ if(approvedBackup&&proof.cutoverBasis!=='explicitly-approved-existing-backup')throw Error('E_APPROVED_BACKUP_SCOPE');
  if(snapshot.synthetic!==false||snapshot.identityReviewed!==true||raw.synthetic!==false||raw.format!=='okgu-sheet-raw-export-v2'||raw.complete!==true||proof.eligibleForPrivateDataComparison!==true||proof.productionSwitched!==false||proof.finalRawSha256!==sha(rawBytes)||snapshot.capturedAt!==proof.finalSourceCriterionAt||snapshot.sourceId!=='sheet:'+sha(String(raw.provenance?.sourceSpreadsheetId||'')))throw Error('E_FINAL_REVIEW_REQUIRED');
  const prepared=prepareInitialImport(snapshot),sourceHash=sha(JSON.stringify(snapshot));
  // Verify ALL originals, including unreferenced photos, before any remote write.
@@ -24,7 +27,7 @@ try{
  const directory='.local/production-import';await mkdir(directory,{recursive:true,mode:0o700});
  const journalPath=directory+'/journal.private.json';let journal;try{journal=JSON.parse(await readFile(journalPath));}catch(e){if(e.code!=='ENOENT')throw Error('E_IMPORT_JOURNAL');}
  if(journal&&(journal.sourceHash!==sourceHash||journal.databaseId!==id))throw Error('E_DIFFERENT_IMPORT_JOURNAL');
- journal=journal||{sourceHash,databaseId:id,startedAt:new Date().toISOString(),completedChunks:0,complete:false};
+ journal=journal||{sourceHash,databaseId:id,startedAt:new Date().toISOString(),completedChunks:0,complete:false,cutoverBasis:proof.cutoverBasis||'verified-frozen-source',sourceFreezeVerified:!approvedBackup,latestDeltaComplete:!approvedBackup};
  const checkpoint=async chunk=>{journal.completedChunks=chunk;await writeFile(journalPath,JSON.stringify(journal),{mode:0o600});};
  await assertPaused();assertImportSubset(prepared,await rows());await checkpoint(journal.completedChunks);
  const managed=await client.accountCall('GET','/r2/buckets/'+resources.bucketName+'/domains/managed'),custom=await client.accountCall('GET','/r2/buckets/'+resources.bucketName+'/domains/custom');if(managed.enabled!==false||custom.domains.length)throw Error('E_R2_PUBLIC');
@@ -38,7 +41,7 @@ try{
  for(const [name,source] of originals)if(!backup.photos.some(o=>o.path===name)){const o=await getObject(name);if(!o)throw Error('E_R2_ARCHIVE_MISSING');if(sha(o.bytes)!==sha(source.bytes)||o.bytes.length!==source.bytes.length)throw Error('E_R2_ARCHIVE_CHANGED');backup.photos.push({path:name,bytes:o.bytes.toString('base64'),sha256:sha(o.bytes),size:o.bytes.length,mime:o.mime});}
  await assertPaused();const live=await rows();assertImportSubset(prepared,live,true);
  const backupPath=directory+'/imported.enc';await writeFile(backupPath,JSON.stringify(sealSnapshot(backup,key)),{mode:0o600});const restored=openSnapshot(JSON.parse(await readFile(backupPath)),key);verifyObjects(restored);const sqlite=new DatabaseSync(':memory:');
- try{sqlite.exec('PRAGMA foreign_keys=ON;BEGIN;'+restored.sql+'COMMIT;');if(sqlite.prepare('PRAGMA foreign_key_check').all().length)throw Error('E_RESTORE_RELATION');for(const [table,entries] of Object.entries(restored.rows)){if(!/^[a-z_]+$/.test(table)||fingerprint(sqlite.prepare('SELECT * FROM "'+table+'"').all())!==fingerprint(entries))throw Error('E_RESTORE_ROWS');}}finally{sqlite.close();}
+ try{sqlite.exec('PRAGMA foreign_keys=ON;BEGIN;'+restored.sql+'COMMIT;');if(sqlite.prepare('PRAGMA foreign_key_check').all().length)throw Error('E_RESTORE_RELATION');for(const [table,entries] of Object.entries(restored.rows)){if(!/^[a-z_][a-z0-9_]*$/.test(table)||fingerprint(sqlite.prepare('SELECT * FROM "'+table+'"').all())!==fingerprint(entries))throw Error('E_RESTORE_ROWS');}}finally{sqlite.close();}
  journal.complete=true;journal.completedAt=new Date().toISOString();await checkpoint(prepared.chunks.length);
  console.log(JSON.stringify({sourceImported:true,fullRowsCompared:true,photoObjectsVerified:originals.size,encryptedBackupCreated:true,isolatedRestoreVerified:true,stillPaused:true,pagesSwitched:false,livePush:false}));
 }catch(e){console.error(e?.message?.match(/\bE_[A-Z_]+\b/)?.[0]||'E_PRODUCTION_IMPORT');process.exitCode=1;}
