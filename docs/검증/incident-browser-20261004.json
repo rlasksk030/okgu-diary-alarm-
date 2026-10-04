@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-10-04T10:33:26.614Z",
+  "environment": "Linux Chromium, intercepted synthetic responses only",
+  "physicalPwa": false,
+  "productionWrites": 0,
+  "results": [
+    "stale/offline version checks block writes without discarding the draft",
+    "explicit update waits for draft commit; text, scope, photos/Blob, edit version survive; another account cannot restore them",
+    "legacy notification ID resolves and renders the canonical diary beyond the loaded list",
+    "resume revalidates the teacher feed but preserves an active comment draft",
+    "failed draft persistence does not navigate or clear current content"
+  ]
+}

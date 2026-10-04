@@ -64,8 +64,33 @@ const viewer=openPhotoViewer;window.openPhotoViewer=function(ref){imageURL(ref).
 window.OKGUPhotos={imageURL,clear(){photoEpoch++;for(const url of urls.values())URL.revokeObjectURL(url);urls.clear();pending.clear();visible.disconnect();}};
 const originalHandleDeepLink=handlePendingDeepLink;
 window.handlePendingDeepLink=function(){if(currentUser?.role==='선생님'&&_pendingDeepLink?.open==='praise'&&!_pendingDeepLink.handled){goTo('dash','교사 대시보드','학급 현황',navButtonFor('dash'));switchTeacherSubTab('praise');finishDeepLink();return;}originalHandleDeepLink();};
-const originalDeepLink=tryDeepLinkAfterRender;let deepLinkLoading=false;
-window.tryDeepLinkAfterRender=function(){const target=_pendingDeepLink;if(!target||target.handled||target.open!=='diary'||!target.id||!currentUser)return originalDeepLink();if(currentUser.role!=='선생님'&&myEntries.some(e=>String(e.id)===String(target.id)))return originalDeepLink();if(currentUser.role==='선생님'&&document.querySelector('[data-diary-id="'+cssAttrEscape(target.id)+'"]'))return originalDeepLink();if(deepLinkLoading)return;deepLinkLoading=true;asPromise('getEntry',[target.id]).then(item=>{if(_pendingDeepLink!==target||!currentUser)return;if(currentUser.role==='선생님'){_modalStudentName=item.studentName;document.getElementById('modal-student-name').textContent=item.studentName+' 일기';document.getElementById('student-modal').classList.add('open');renderModalDiaries([item]);const node=target.cid?document.getElementById('mtc-'+target.cid):document.querySelector('#modal-diary-list .diary-item');if(node)highlightTarget(node);finishDeepLink();}else{myEntries.push(item);originalDeepLink();}}).catch(e=>{if(_pendingDeepLink===target){alert(e.message);finishDeepLink();}}).finally(()=>{deepLinkLoading=false;});};
+const originalDeepLink=tryDeepLinkAfterRender;let deepLinkLoading=null;
+window.tryDeepLinkAfterRender=function(){
+ const target=_pendingDeepLink,owner=currentUser;
+ if(!target||target.handled||target.open!=='diary'||!target.id||!owner)return originalDeepLink();
+ const known=myEntries.find(e=>String(e.id)===String(target.id)||String(e.legacyId)===String(target.id));
+ if(owner.role!=='선생님'&&known){target.id=known.id;return originalDeepLink();}
+ if(owner.role==='선생님'&&document.querySelector('[data-diary-id="'+cssAttrEscape(target.id)+'"]'))return originalDeepLink();
+ if(deepLinkLoading)return;
+ deepLinkLoading=target;
+ asPromise('getEntry',[target.id]).then(item=>{
+  if(_pendingDeepLink!==target||currentUser!==owner)return;
+  target.id=item.id;
+  const comment=[...(item.teacherComments||[]),...(item.boardComments||[])].find(c=>c.id===target.cid||c.legacyId===target.cid);
+  if(comment)target.cid=comment.id;
+  if(owner.role==='선생님'){
+   _modalStudentName=item.studentName;document.getElementById('modal-student-name').textContent=item.studentName+' 일기';
+   document.getElementById('student-modal').classList.add('open');renderModalDiaries([item]);
+   const node=(target.cid&&document.getElementById('mtc-'+target.cid))||document.querySelector('#modal-diary-list .diary-item');
+   if(node)highlightTarget(node);finishDeepLink();
+  }else{
+   myEntries=[...myEntries.filter(e=>e.id!==item.id),item];originalDeepLink();
+  }
+ }).catch(e=>{if(_pendingDeepLink===target&&currentUser===owner){alert(e.message);/* retain the URL for retry after recovery/network repair */}}).finally(()=>{
+  deepLinkLoading=null;
+  if(_pendingDeepLink&&_pendingDeepLink!==target&&!_pendingDeepLink.handled)tryDeepLinkAfterRender();
+ });
+};
 window.addEventListener('okgu-account-reset',()=>{viewGeneration++;modalGeneration++;searchGeneration++;summary=null;_realPushEnabled=false;_pushPromptDismissedThisSession=false;if(window._notifPoller)clearInterval(window._notifPoller);window._notifPoller=null;for(const w of printWindows)if(!w.closed)w.close();printWindows.clear();myEntries=[];pendingPhotos=[];uploadedUrls=[];editingEntryId=null;_saveInProgress=false;_quickDiarySaving=false;_praiseSending=false;_commentSendLocks={};for(const id of ['diary-text','quick-line']){const el=document.getElementById(id);if(el)el.value='';}document.getElementById('photo-preview')?.replaceChildren();boardPosts=[];praiseData=null;praisePage=null;moderationPage=null;studentList=[];classOverview=[];feedEntries=[];studentFlags={};praiseModItems=[];pushStatusItems=[];pushStatusMap={};_studentListLoaded=false;_studentListLoading=false;_boardOffset=0;_boardHasMore=false;_boardLoading=false;_feedOffset=0;_feedHasMore=false;_feedLoading=false;_feedRefreshPending=false;_feedRequestGeneration++;_teacherCommentMap={};window._fastStats=null;window._fastEditingVersion=null;document.getElementById('student-modal')?.classList.remove('open');for(const id of ['search-results','stat-entry-preview','modal-diary-list','board-list','praise-list','ds-praise-list','ds-student-list','ds-feed-list']){const el=document.getElementById(id);if(el)el.replaceChildren();}});
 // Register for updates without forced activation/reload, preserving active drafts.
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(()=>{});

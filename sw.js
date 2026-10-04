@@ -1,9 +1,10 @@
 // Preserve manifest identity and scope. Never cache authenticated data or force reload.
 const APP_URL = new URL('./', self.location.href);
+function appTarget(value){try{const u=new URL(value||APP_URL.href,APP_URL);if(u.origin===APP_URL.origin&&u.pathname.startsWith(APP_URL.pathname))return u;}catch{}return new URL(APP_URL);}
 self.addEventListener('push', event => {
   let data = {title:'OKGU DIARY',body:'새 알림이 있어요.',url:APP_URL.href};
   try { if(event.data) data = {...data,...event.data.json()}; } catch {}
-  let target = new URL(data.url || APP_URL.href,APP_URL);
+  let target = appTarget(data.url);
   if(target.origin!==APP_URL.origin || !target.pathname.startsWith(APP_URL.pathname)) target=APP_URL;
   const tasks=[self.registration.showNotification(data.title || 'OKGU DIARY', {
     body:data.body||'새 알림이 있어요.',icon:'okgu_icon.png',badge:'okgu_icon.png',
@@ -14,13 +15,18 @@ self.addEventListener('push', event => {
 });
 self.addEventListener('notificationclick',event=>{
  event.notification.close();
- let url=new URL(event.notification.data?.url||APP_URL.href,APP_URL);
+ let url=appTarget(event.notification.data?.url);
  if(url.origin!==APP_URL.origin||!url.pathname.startsWith(APP_URL.pathname))url=APP_URL;
  event.waitUntil((async()=>{
   if(self.registration.clearAppBadge)await self.registration.clearAppBadge().catch(()=>{});
   const clients=await self.clients.matchAll({type:'window',includeUncontrolled:true});
   const client=clients.find(c=>{const u=new URL(c.url);return u.origin===APP_URL.origin&&u.pathname.startsWith(APP_URL.pathname);});
-  if(client){client.postMessage({type:'OKGU_DEEP_LINK',url:url.href});return client.focus();}
+  if(client){
+   const handled=await new Promise(resolve=>{const channel=new MessageChannel();const timer=setTimeout(()=>{channel.port1.close();resolve(false);},1000);channel.port1.onmessage=e=>{clearTimeout(timer);channel.port1.close();resolve(e.data?.handled===true);};client.postMessage({type:'OKGU_DEEP_LINK',url:url.href},[channel.port2]);});
+   if(handled)return client.focus();
+  }
+  // An old page may not understand the message. Keep its draft open and load
+  // a fresh page at the target instead of navigating the old window away.
   if(self.clients.openWindow)return self.clients.openWindow(url.href);
  })());
 });
