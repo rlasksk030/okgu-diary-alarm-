@@ -50,7 +50,14 @@ try{
  assert.equal((await query('SELECT id FROM notifications WHERE recipient_id=? AND link_id=? AND actor_id=?',[accounts[1].id,saved.id,accounts[0].id])).length,1);report.notificationRow=true;
  report.pushDelivery=false;report.actualNotificationClick=false;
  if(report.pushSubscription.registered){
-  try{await teacher.waitForFunction(async id=>(await (await navigator.serviceWorker.ready).getNotifications()).some(n=>n.data?.entryId===id),saved.id,{timeout:45000});report.pushDelivery=true;}catch{report.pushReceiptError='No received notification observed within 45 seconds';}
+  // Playwright 1.56 waitForFunction treats an async predicate's Promise as truthy.
+  // Poll and assert the resolved value so a missing notification can never pass.
+  report.pushDelivery=await teacher.evaluate(async id=>{
+   const deadline=Date.now()+45000,reg=await navigator.serviceWorker.ready;
+   while(Date.now()<deadline){if((await reg.getNotifications()).some(n=>n.data?.entryId===id))return true;await new Promise(resolve=>setTimeout(resolve,300));}
+   return false;
+  },saved.id);
+  if(!report.pushDelivery)report.pushReceiptError='No received notification observed within 45 seconds';
  }
  // The deep link can be verified independently, without claiming a physical notification click.
  await teacher.goto(payload.url);await teacher.waitForFunction(id=>feedEntries.some(e=>e.id===id),saved.id);report.pushTargetRoute=true;
