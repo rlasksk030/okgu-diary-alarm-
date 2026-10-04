@@ -25,7 +25,7 @@ export async function write(env:Env,a:Account,token:string,body:any){const {meth
  }};
  const notifyTeachers=(type:string,link:string)=>{
   const url=new URL(env.APP_URL);if(type!=='praise-review'){url.searchParams.set('open',type.startsWith('praise')?'praise':'diary');url.searchParams.set('id',link);}
-  const payload=JSON.stringify({title:'OKGU DIARY',body:message(type),url:url.href,tag:method+':'+requestId,guard:{type,link,comment:''}});
+  const payload=JSON.stringify({title:'OKGU DIARY',body:message(type),url:url.href,tag:method+':'+requestId,...(type==='diary'?{entryId:link,studentId:a.id,classId:a.class_id}:{}),guard:{type,link,comment:''}});
   const eligible="t.class_id=? AND t.role='teacher' AND t.active=1 AND t.id<>?";
   q(`INSERT INTO notifications(id,recipient_id,actor_id,event_key,type,link_id,comment_id,created_at) SELECT lower(hex(randomblob(16))),t.id,?,?||t.id,?,?,'',? FROM accounts t WHERE ${eligible} AND ${guard} AND ${proof} ON CONFLICT(recipient_id,event_key) DO NOTHING`,[a.id,method+':'+requestId+':',type,link,now,a.class_id,a.id,...gp,...proofParams]);
   q(`INSERT INTO push_jobs(id,event_key,account_id,payload,status,created_at,updated_at) SELECT lower(hex(randomblob(16))),?||t.id,t.id,?,'pending',?,? FROM accounts t WHERE ${eligible} AND ${guard} AND ${proof} ON CONFLICT(event_key) DO NOTHING`,[method+':'+requestId+':',payload,now,now,a.class_id,a.id,...gp,...proofParams]);
