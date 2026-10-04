@@ -27,9 +27,10 @@ source.d1_databases=[{binding:'DB',database_name:'okgu-diary-production',databas
 source.r2_buckets=[{binding:'PHOTOS',bucket_name:'okgu-diary-production-private'}];
 const directory=resolve('.local/production-candidate'),site=directory+'/pages';await mkdir(site,{recursive:true,mode:0o700});
 await writeFile(directory+'/wrangler.production.json',JSON.stringify(source,null,2)+'\n',{mode:0o600});
-const files=['index.html','manifest.json','sw.js','okgu_icon.png','rpc.js','fast-ui.js','student-pin.js'];
+const files=['index.html','manifest.json','sw.js','okgu_icon.png','rpc.js','fast-ui.js','student-pin.js','app-update.js','app-release.json'];
 for(const file of files)await copyFile(file,site+'/'+file);
-await writeFile(site+'/config.js','window.OKGU_CONFIG='+JSON.stringify({apiOrigin:origin,vapidPublicKey:vapid,version:'cf-20261002'})+';\n');
+await writeFile(site+'/config.js','window.OKGU_CONFIG='+JSON.stringify({apiOrigin:origin,vapidPublicKey:vapid,version:'cf-20261004-recovery'})+';\n');
+await writeFile(site+'/app-release.json',JSON.stringify({version:'cf-20261004-recovery',apiOrigin:origin}));
 await writeFile(site+'/.nojekyll','');
 const report={at:new Date().toISOString(),candidateOnly:true,preview,resourceCreation:false,sourceImport:false,operatingPagesChanged:false,operatingPublishMode:'legacy:main:/',plannedApiOrigin:origin,studentUrl:source.vars.APP_URL,staticFiles:files,existingVapidFingerprint:createHash('sha256').update(vapid).digest('hex'),writeMode:'paused',pushMode:'disabled',crons:[],billingChanged:false,sourceDataGate:'Actual private source backup, identity/header/relationship/photo comparison and dedicated production D1/private R2 verification remain mandatory before deploying/publishing; this candidate is not a deployment gate or proof of imported data.'};
 await writeFile(directory+'/candidate-summary.json',JSON.stringify(report,null,2)+'\n',{mode:0o600});console.log(JSON.stringify(report));

@@ -1,1 +1,1 @@
-window.OKGU_CONFIG={"apiOrigin":"https://okgu-diary-api.rlasksk030.workers.dev","vapidPublicKey":"BJh74RZxk4VrDHzZTJM7DG6ZZhyyHKyQl_P_5xLxqHC1NK95XO2NBg9Miwv7hPse43wHxGiu80EQQ0wPqSWej-U","version":"cf-20261002"};
+window.OKGU_CONFIG={"apiOrigin":"https://okgu-diary-api.rlasksk030.workers.dev","vapidPublicKey":"BJh74RZxk4VrDHzZTJM7DG6ZZhyyHKyQl_P_5xLxqHC1NK95XO2NBg9Miwv7hPse43wHxGiu80EQQ0wPqSWej-U","version":"cf-20261004-recovery"};

@@ -410,8 +410,8 @@ input.mo:checked+.tsl{background:#111;}
 #quick-line:focus{border-color:#111;}
 .quick-save{width:100%;padding:9px;border-radius:var(--radius-lg);border:none;cursor:pointer;font-size:13px;font-weight:600;color:#fff;background:#111;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:5px;}
 </style>
-<script src="config.js"></script>
-<script src="rpc.js"></script>
+<script src="config.js?v=cf-20261004-recovery"></script>
+<script src="rpc.js?v=cf-20261004-recovery"></script>
 </head>
 <body>
 
@@ -879,6 +879,7 @@ let curStatPeriod = 'week';
 let selStatDay  = null;
 let praiseFilter = 'received';
 let boardFilter  = 'all';
+let _photoProcessing = 0;
 let pendingPhotos = []; // { file, base64, url(로컬 미리보기) }
 let uploadedUrls  = []; // 서버 업로드 완료된 Drive URL
 let editingEntryId = null; // 수정 중인 일기 ID (null이면 새 일기)
@@ -1703,8 +1704,11 @@ function parseDeepLinkTarget(url){
   }catch(e){ return null; }
 }
 function applyDeepLinkUrl(url){
-  const target = parseDeepLinkTarget(url);
+  let destination;try{destination=new URL(url,location.href);}catch{return;}
+  if(destination.origin!==location.origin||!destination.pathname.startsWith(new URL('./',location.href).pathname))return;
+  const target = parseDeepLinkTarget(destination.href);
   if(!target) return;
+  history.replaceState(null,'',destination.href);
   _pendingDeepLink = target;
   _deepLinkLoadAttempts = 0;
   handlePendingDeepLink();
@@ -1713,7 +1717,11 @@ function applyDeepLinkUrl(url){
 if('serviceWorker' in navigator){
   navigator.serviceWorker.addEventListener('message', function(event){
     const data = event && event.data ? event.data : {};
-    if(data.type === 'OKGU_DEEP_LINK' && data.url) applyDeepLinkUrl(data.url);
+    if(data.type === 'OKGU_DEEP_LINK' && data.url){
+      const busyDraft = !!document.getElementById('diary-text')?.value || !!document.getElementById('quick-line')?.value || pendingPhotos.length>0 || _photoProcessing>0 || Array.from(document.querySelectorAll('#main-app textarea,#main-app input[type=text],#student-modal input')).some(el=>el.value);
+      if(event.ports?.[0])event.ports[0].postMessage({handled:!busyDraft});
+      if(!busyDraft)applyDeepLinkUrl(data.url);
+    }
   });
 }
 function navButtonFor(screen){
@@ -2136,11 +2144,13 @@ function resizeAndPreview(file){
     alert('이미지 파일만 올릴 수 있어요.');
     return;
   }
+  _photoProcessing++;
   const reader = new FileReader();
-  reader.onerror = function(){ alert('사진을 읽지 못했어요. 다시 시도해주세요.'); };
+  reader.onerror = function(){ _photoProcessing--;alert('사진을 읽지 못했어요. 다시 시도해주세요.'); };
+  reader.onabort = function(){ _photoProcessing--; };
   reader.onload = function(e){
     const img = new Image();
-    img.onerror = function(){ alert('이 사진은 처리할 수 없어요.'); };
+    img.onerror = function(){ _photoProcessing--;alert('이 사진은 처리할 수 없어요.'); };
     img.onload = function(){
       try {
         // 기존 픽셀 크기 상한은 유지하고, 업로드 용량은 JPEG 품질로 낮춘다.
@@ -2162,7 +2172,7 @@ function resizeAndPreview(file){
       } catch(err){
         console.error('[resizeAndPreview] error:', err);
         alert('사진을 처리하는 중 문제가 생겼어요.');
-      }
+      } finally { _photoProcessing--; }
     };
     img.src = e.target.result;
   };
@@ -4322,7 +4332,8 @@ function customConfirm(msg, onOk) {
     </div>
   </div>
 </div>
-<script src="fast-ui.js"></script>
-<script src="student-pin.js"></script>
+<script src="fast-ui.js?v=cf-20261004-recovery"></script>
+<script src="app-update.js?v=cf-20261004-recovery"></script>
+<script src="student-pin.js?v=cf-20261004-recovery"></script>
 </body>
 </html>
