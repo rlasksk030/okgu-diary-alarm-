@@ -2,6 +2,8 @@
 (function(){
 'use strict';
 const cfg=window.OKGU_CONFIG||{};
+const productionHost=location.hostname==='rlasksk030.github.io';
+const validOrigin=()=>!productionHost||cfg.apiOrigin==='https://okgu-diary-api.rlasksk030.workers.dev';
 const reads=new Set(['verifyToken','getStudents','getMyEntries','getStudentDashboard','getBoard','getPraise','getRecentEntries','getClassOverview','getClassMoodStats','getStudentEntries','getNotifications','listAllPraiseForTeacher','listStudentFlags','getMoodTrend','exportMoodStatsCsv','getMyPushStatus','getPushSubscriptionStatus','getTeacherDashboardBundle','searchEntries','getMyStats','getEntry','exportEntries']);
 let epoch=0;const inflight=new Map(),attempts=new Map(),versions=new Map(),controllers=new Set();
 const getToken=()=>sessionStorage.getItem('okgu_fast_token')||localStorage.getItem('okgu_fast_token')||'';
@@ -9,10 +11,11 @@ function reset(){epoch++;for(const c of controllers)c.abort();controllers.clear(
 function logout(){const token=getToken();sessionStorage.removeItem('okgu_fast_token');localStorage.removeItem('okgu_fast_token');reset();if(!token)return Promise.resolve();
  // Revoke the session across navigation while restoring main's immediate logout.
  // Other account requests are cancelled by reset; this small keepalive is separate.
+ if(!validOrigin())return Promise.reject(new Error('E_API_CONFIG'));
  return fetch(cfg.apiOrigin+'/api/rpc',{method:'POST',keepalive:true,cache:'no-store',headers:{'Content-Type':'application/json','X-OKGU-Request':'1',Authorization:'Bearer '+token},body:JSON.stringify({method:'logout',args:[]})}).then(r=>{if(!r.ok)throw new Error('E_LOGOUT');});
 }
 function record(value){if(Array.isArray(value)){value.forEach(record);return;}if(value&&typeof value==='object'){if(value.id&&Number.isInteger(value.version))versions.set(value.id,value.version);Object.values(value).forEach(record);}}
-async function request(path,options){if(!cfg.apiOrigin)throw new Error('시험 API 주소를 설정해 주세요.');const ctl=new AbortController();controllers.add(ctl);const timer=setTimeout(()=>ctl.abort(),30000);try{const r=await fetch(cfg.apiOrigin+path,{...options,signal:ctl.signal,cache:'no-store'});if(!r.ok){let err;try{err=await r.json();}catch{}throw Object.assign(new Error(err?.msg||'연결을 확인한 뒤 다시 시도해 주세요.'),{code:err?.code,status:r.status});}return r;}finally{clearTimeout(timer);controllers.delete(ctl);}}
+async function request(path,options){if(!cfg.apiOrigin||!validOrigin())throw new Error('앱 연결 설정을 확인할 수 없어요. 작성 내용을 보관한 뒤 앱을 다시 열어 주세요.');const ctl=new AbortController();controllers.add(ctl);const timer=setTimeout(()=>ctl.abort(),30000);try{const r=await fetch(cfg.apiOrigin+path,{...options,signal:ctl.signal,cache:'no-store'});if(!r.ok){let err;try{err=await r.json();}catch{}throw Object.assign(new Error(err?.msg||'연결을 확인한 뒤 다시 시도해 주세요.'),{code:err?.code,status:r.status});}return r;}finally{clearTimeout(timer);controllers.delete(ctl);}}
 async function call(method,args,extra={}){
  if(method==='login')reset();
  const generation=epoch,token=getToken();
@@ -23,7 +26,9 @@ async function call(method,args,extra={}){
  if(!reads.has(method)&&!['login','logout','changePin'].includes(method))body.requestId=extra.requestId||attempts.get(key)||crypto.randomUUID();
  if(body.requestId)attempts.set(key,body.requestId);
  if(inflight.has(key))return inflight.get(key);
- const promise=(async()=>{const r=await request('/api/rpc',{method:'POST',headers:{'Content-Type':'application/json','X-OKGU-Request':'1',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(body)});const value=await r.json();if(generation!==epoch)throw new Error('계정이 변경되어 요청을 취소했어요.');record(value);attempts.delete(key);
+ const promise=(async()=>{const r=await request('/api/rpc',{method:'POST',headers:{'Content-Type':'application/json','X-OKGU-Request':'1',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(body)});const value=await r.json();if(generation!==epoch)throw new Error('계정이 변경되어 요청을 취소했어요.');
+ if(method==='saveEntry'&&(value?.success!==true||!value.id||value.entry?.id!==value.id))throw new Error('저장 결과를 확인하지 못했어요. 작성 내용을 보관하고 다시 확인해 주세요.');
+ record(value);attempts.delete(key);
  if(method==='login'){sessionStorage.removeItem('okgu_fast_token');localStorage.removeItem('okgu_fast_token');(args[2]?localStorage:sessionStorage).setItem('okgu_fast_token',value.token);}
  if(method==='logout'){sessionStorage.removeItem('okgu_fast_token');localStorage.removeItem('okgu_fast_token');reset();}
  return value;})();inflight.set(key,promise);try{return await promise;}finally{if(inflight.get(key)===promise)inflight.delete(key);}
