@@ -272,7 +272,7 @@ input.mo:checked+.tsl{background:#111;}
 .pitem:last-child{border-bottom:none;padding-bottom:0;}
 .pav2{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
 .pfrom{font-size:10px;color:var(--text3);margin-bottom:2px;}
-.pmsg{font-size:12px;color:var(--text);line-height:1.5;}
+.pmsg{font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;}
 .ptime{font-size:10px;color:var(--text3);margin-top:2px;}
 .new-badge{display:inline-block;background:#111;color:#fff;font-size:9px;font-weight:600;border-radius:99px;padding:1px 5px;margin-left:5px;vertical-align:middle;}
 .datalist-box{background:#fff;border:.5px solid var(--border2);border-radius:10px;margin-top:3px;overflow:hidden;display:none;}
@@ -410,8 +410,8 @@ input.mo:checked+.tsl{background:#111;}
 #quick-line:focus{border-color:#111;}
 .quick-save{width:100%;padding:9px;border-radius:var(--radius-lg);border:none;cursor:pointer;font-size:13px;font-weight:600;color:#fff;background:#111;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:5px;}
 </style>
-<script src="config.js?v=cloud-write-20261004"></script>
-<script src="rpc.js?v=cloud-write-20261004"></script>
+<script src="config.js?v=praise-20261005"></script>
+<script src="rpc.js?v=praise-20261005"></script>
 </head>
 <body>
 
@@ -684,7 +684,8 @@ function moodSvg(emoji){ return MOOD_SVG_MAP[emoji] || ''; }
           <option value="">-- 친구 선택 --</option>
         </select>
       </div>
-      <textarea class="praise-msg-input" id="praise-msg" rows="3" placeholder="칭찬 메시지를 써봐..."></textarea>
+      <textarea class="praise-msg-input" id="praise-msg" rows="3" placeholder="칭찬 메시지를 써봐..." aria-describedby="praise-length" oninput="updatePraiseLength()"></textarea>
+      <div id="praise-length" style="font-size:11px;color:var(--text2);text-align:right;">0 / 10,000자 (줄바꿈 포함)</div>
       <label style="display:flex;align-items:center;gap:6px;font-size:var(--fs-label);color:var(--text2);margin:6px 2px 2px;cursor:pointer;user-select:none;">
         <input type="checkbox" id="praise-anon" style="accent-color:#111;width:14px;height:14px;">
         <span style="display:inline-flex;align-items:center;gap:4px;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" style="vertical-align:-1px"><path d="M3 11 Q8 7 12 7 Q16 7 21 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="5" y="11" width="5.5" height="4" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="13.5" y="11" width="5.5" height="4" rx="1" stroke="currentColor" stroke-width="1.4"/><line x1="10.5" y1="13" x2="13.5" y2="13" stroke="currentColor" stroke-width="1.4"/></svg> 익명으로 보내기 (받는 친구에게 이름 숨김)</span>
@@ -692,7 +693,7 @@ function moodSvg(emoji){ return MOOD_SVG_MAP[emoji] || ''; }
       <button class="praise-send-btn" onclick="sendPraiseMsg()">
         <span id="praise-spinner" style="display:none;" class="spinner"></span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="vertical-align:-2px"><rect x="3.5" y="6" width="17" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M4 7 L12 13 L20 7" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg> 칭찬 보내기
       </button>
-      <div id="praise-send-msg" style="font-size:12px;color:#111;text-align:center;margin-top:5px;display:none;"></div>
+      <div id="praise-send-msg" role="status" aria-live="polite" style="font-size:12px;color:#111;text-align:center;margin-top:5px;display:none;"></div>
     </div>
     <div class="slabel">칭찬 기록</div>
     <div class="pcount-row">
@@ -3097,39 +3098,56 @@ function loadStudentList(){
     .getStudents();
 }
 
-function sendPraiseMsg(){
+function updatePraiseLength(){
+  const count = [...document.getElementById('praise-msg').value].length;
+  document.getElementById('praise-length').textContent = count.toLocaleString('ko-KR') + ' / 10,000자 (줄바꿈 포함)';
+}
+
+async function sendPraiseMsg(){
   if(_praiseSending) return;
-  const to  = document.getElementById('praise-to').value.trim();
-  const msg = document.getElementById('praise-msg').value.trim();
+  const target = document.getElementById('praise-to');
+  const input = document.getElementById('praise-msg');
   const anonCb = document.getElementById('praise-anon');
-  const anonymous = anonCb ? !!anonCb.checked : false;
-  if(!to){ alert('칭찬을 받을 친구를 선택해줘'); return; }
-  if(!msg){ alert('칭찬 메시지를 써봐'); return; }
+  const to = target.value;
+  const msg = input.value;
+  const anonymous = !!anonCb?.checked;
+  const status = document.getElementById('praise-send-msg');
+  const showStatus = text => { status.textContent = text; status.style.display = 'block'; };
+  if(!currentUser || !window.OKGUAPI?.getToken()){ showStatus('로그인이 필요해요. 작성 내용을 보관한 뒤 다시 로그인해 주세요.'); return; }
+  if(!to){ showStatus('칭찬을 받을 친구를 선택해줘'); return; }
+  if(!msg.trim()){ showStatus('칭찬 메시지를 써봐'); return; }
+  if([...msg].length > 10000){ showStatus('칭찬은 줄바꿈을 포함해 10,000자까지 보낼 수 있어요. 내용을 줄여 주세요.'); return; }
+  const user = currentUser, token = OKGUAPI.getToken();
   const sp = document.getElementById('praise-spinner');
   const btn = document.querySelector('.praise-send-btn');
   _praiseSending = true;
-  if(btn) btn.disabled = true;
-  sp.style.display='inline-block';
-  google.script.run
-    .withSuccessHandler(function(res){
-      _praiseSending = false;
-      if(btn) btn.disabled = false;
-      sp.style.display='none';
-      if(res.success){
-        document.getElementById('praise-to').value='';
-        document.getElementById('praise-msg').value='';
-        if(anonCb) anonCb.checked = false;
-        const m=document.getElementById('praise-send-msg');
-        m.textContent = to + '에게 칭찬을 보냈어요';
-        m.style.display='block';
-        setTimeout(()=>m.style.display='none',2500);
-        loadPraise();
-      } else {
-        alert(res.msg);
-      }
-    })
-    .withFailureHandler(function(e){ _praiseSending = false; if(btn) btn.disabled = false; sp.style.display='none'; console.error(e); })
-    .sendPraise(currentUser.name, to, msg, anonymous);
+  btn.disabled = true;
+  sp.style.display = 'inline-block';
+  showStatus('칭찬을 저장하고 있어요…');
+  try{
+    await OKGUAPI.call('sendPraise', [user.name, to, msg, anonymous]);
+  }catch(e){
+    if(currentUser === user && OKGUAPI.getToken() === token){
+      const reason = e.name === 'AbortError' ? '응답 시간이 초과됐어요. 같은 내용으로 다시 시도해 주세요.' : e.message || '연결을 확인한 뒤 다시 시도해 주세요.';
+      showStatus('칭찬 저장을 확인하지 못했어요. ' + reason + (e.code ? ' (' + e.code + ')' : '') + ' 작성 내용은 유지했어요.');
+    }
+    return;
+  }finally{
+    _praiseSending = false;
+    btn.disabled = false;
+    sp.style.display = 'none';
+  }
+  if(currentUser !== user || OKGUAPI.getToken() !== token) return;
+  // Keep any new text entered while the previous request was in flight.
+  if(input.value === msg && target.value === to && !!anonCb?.checked === anonymous){
+    input.value = '';
+    target.value = '';
+    if(anonCb) anonCb.checked = false;
+    updatePraiseLength();
+  }
+  showStatus(to + '에게 보낼 칭찬을 저장했어요. 선생님 승인 후 전달돼요.');
+  // A refresh or push failure cannot turn a committed praise into a failed send.
+  try{ loadPraise(); }catch{ showStatus('칭찬은 저장됐어요. 칭찬함을 다시 열면 확인할 수 있어요.'); }
 }
 
 function loadPraise(){
@@ -3515,7 +3533,7 @@ function renderPraiseMod(){
         statusTag + anonTag + hidTag +
         '<span style="margin-left:auto;">'+esc(p.time||'')+'</span>'+
       '</div>'+
-      '<div style="font-size:var(--fs-label);margin-top:4px;line-height:1.5;color:var(--text2);">'+esc(p.msg||'')+'</div>'+
+      '<div class="pmsg" style="font-size:var(--fs-label);margin-top:4px;line-height:1.5;color:var(--text2);">'+esc(p.msg||'')+'</div>'+
       '<div style="display:flex;gap:4px;margin-top:7px;flex-wrap:wrap;">'+actions+'</div>'+
     '</div>';
   }).join('');
