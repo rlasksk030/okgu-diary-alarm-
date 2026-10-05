@@ -28,6 +28,7 @@ async function call(method,args,extra={}){
  if(inflight.has(key))return inflight.get(key);
  const promise=(async()=>{const r=await request('/api/rpc',{method:'POST',headers:{'Content-Type':'application/json','X-OKGU-Request':'1',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(body)});const value=await r.json();if(generation!==epoch)throw new Error('계정이 변경되어 요청을 취소했어요.');
  if(method==='saveEntry'&&(value?.success!==true||!value.id||value.entry?.id!==value.id))throw new Error('저장 결과를 확인하지 못했어요. 작성 내용을 보관하고 다시 확인해 주세요.');
+ if(method==='sendPraise'&&(value?.success!==true||typeof value.id!=='string'||!value.id))throw new Error(value?.msg||'칭찬 저장 결과를 확인하지 못했어요. 같은 내용으로 다시 시도하면 중복 저장되지 않아요.');
  record(value);attempts.delete(key);
  if(method==='login'){sessionStorage.removeItem('okgu_fast_token');localStorage.removeItem('okgu_fast_token');(args[2]?localStorage:sessionStorage).setItem('okgu_fast_token',value.token);}
  if(method==='logout'){sessionStorage.removeItem('okgu_fast_token');localStorage.removeItem('okgu_fast_token');reset();}

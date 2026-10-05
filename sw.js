@@ -1,4 +1,4 @@
-// Cloud cutover v20261004. Claim open legacy pages without reloading their drafts.
+// Praise release v20261005. Claim open legacy pages without reloading their drafts.
 const APP_URL = new URL('./', self.location.href);
 self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
 self.addEventListener('activate', event => event.waitUntil((async()=>{
