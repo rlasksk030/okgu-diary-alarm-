@@ -966,11 +966,13 @@ function renderDiaryPhotos(urls, extraClass){
   if(!photos.length) return '';
   const cls = 'diary-photo-grid' + (photos.length === 1 ? ' one' : '') + (extraClass ? ' ' + extraClass : '');
   return `<div class="${cls}">` + photos.map(function(url){
-    return `<button type="button" class="diary-photo-btn" onclick="openPhotoViewer('${escJs(url)}')" aria-label="사진 크게 보기"><img class="diary-photo" src="${esc(url)}" loading="lazy" decoding="async" alt="" onerror="handlePhotoError(this)"></button>`;
+    return `<button type="button" class="diary-photo-btn" onclick="openPhotoViewer('${escJs(url)}')" aria-label="사진 크게 보기"><img class="diary-photo" ${String(url).startsWith('okgu-photo:') ? 'data-okgu-photo' : 'src'}="${esc(url)}" loading="lazy" decoding="async" alt="" onerror="handlePhotoError(this)"></button>`;
   }).join('') + '</div>';
 }
 
 function handlePhotoError(img){
+  // 비공개 사진(okgu-photo:)은 fast-ui.js가 받아오는 중이므로, 실제 주소가 붙기 전 오류는 무시
+  if(img && img.dataset && img.dataset.okguPhoto && !(img.currentSrc || img.getAttribute('src'))) return;
   const btn = img && img.closest ? img.closest('.diary-photo-btn') : null;
   if(btn){ btn.classList.add('photo-error'); btn.disabled = true; }
 }
